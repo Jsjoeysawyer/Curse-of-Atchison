@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wicked Willow • Atchison Gulch</title>
+<meta name="theme-color" content="#111017">
+<style>
+  :root{
+    --bg:#0c0a12;
+    --panel:#131022;
+    --ink:#f0e6ff;
+    --muted:#c8b8ffb3;
+    --accent:#9ef0c9;
+    --accent2:#dbc2ff;
+    --danger:#ff6b6b;
+    --gold:#f9d56e;
+    --coin:#f6c945;
+    --shadow:#0007;
+    --glow:#52ffb380;
+    --link:#b8f3d2;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background: radial-gradient(1200px 700px at 70% -10%, #1b1533 0%, var(--bg) 45%, #09070f 100%);
+    color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  /* Subtle floating stars */
+  .stars{position:fixed; inset:0; pointer-events:none; z-index:0}
+  .stars:before,.stars:after{
+    content:""; position:absolute; inset:-50vh -50vw; background:
+      radial-gradient(2px 2px at 10% 20%, #ffffff55 50%, transparent 60%),
+      radial-gradient(2px 2px at 30% 80%, #ffffff33 50%, transparent 60%),
+      radial-gradient(2px 2px at 70% 30%, #ffffff44 50%, transparent 60%),
+      radial-gradient(2px 2px at 90% 60%, #ffffff22 50%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 50% 50%, #ffffff22 50%, transparent 60%);
+    animation: drift 120s linear infinite;
+  }
+  .stars:after{animation-duration:160s; opacity:.6; filter:blur(.5px)}
+  @keyframes drift{to{transform:translateY(40vh)}}
+
+  header{
+    position:sticky; top:0; z-index:5; backdrop-filter: blur(8px);
+    background:linear-gradient(180deg, #0f0c18dd, #0f0c18cc 60%, transparent);
+    border-bottom:1px solid #30264a; box-shadow: 0 10px 30px #000d;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:16px 16px}
+  .title{
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+  }
+  .brand{
+    display:flex; gap:14px; align-items:center;
+  }
+  .sigil{
+    width:40px; height:40px; border-radius:50%;
+    background: conic-gradient(from 210deg, #3efac4, #8bdcff, #b28bff, #3efac4);
+    box-shadow: 0 0 16px var(--glow), inset 0 0 12px #0009;
+    position:relative; isolation:isolate;
+  }
+  .sigil:after{
+    content:"★"; position:absolute; inset:0; display:grid; place-items:center;
+    color:#0a0a12; font-size:18px; text-shadow:0 0 10px #000;
+  }
+  h1{margin:0; font-weight:800; letter-spacing:.5px; font-size:20px}
+  .progress{
+    display:flex; align-items:center; gap:8px; margin-top:10px;
+  }
+  .bar{
+    flex:1; height:10px; background:#1b1730; border-radius:99px; overflow:hidden; box-shadow: inset 0 0 0 1px #30264a;
+  }
+  .bar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, #48f8c5, #b693ff); box-shadow: 0 0 16px var(--glow) inset, 0 0 12px var(--glow)}
+  .coins{display:flex; gap:6px}
+  .coin{
+    width:22px; height:22px; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff8 0 20%, transparent 21%),
+                linear-gradient(145deg, #ffeaa6, var(--coin));
+    border:1px solid #e0b94a; box-shadow: inset 0 0 6px #966f00, 0 2px 4px #000a;
+    transform: translateY(0); transition: transform .2s ease, filter .2s ease; filter:grayscale(100%) opacity(.4);
+  }
+  .coin.got{filter:none}
+  .coin:hover{transform: translateY(-2px)}
+  .actions{display:flex; gap:8px}
+  button, .pill{
+    background:linear-gradient(180deg, #1d1733, #151029);
+    border:1px solid #3c3161; color:var(--ink);
+    padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;
+    box-shadow: 0 6px 16px #0009, inset 0 0 0 1px #0006;
+  }
+  button:hover{border-color:#6e5bc6}
+  .grid{
+    display:grid; gap:16px; grid-template-columns: 1fr;
+    padding:20px 16px 56px;
+  }
+  @media(min-width:900px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+  .card{
+    background: linear-gradient(180deg, #17122b, #100c1d);
+    border:1px solid #30264a; border-radius:16px; box-shadow: 0 20px 50px #000c, inset 0 0 0 1px #0008;
+    position:relative; overflow:hidden;
+  }
+  .card .head{
+    padding:16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #2a2243;
+    background: linear-gradient(180deg, #1a1433, transparent);
+  }
+  .tag{
+    font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #39465a; color:#a7c5c0;
+    background: linear-gradient(180deg, #0f1e1a, #0b1412);
+  }
+  .card h2{margin:0; font-size:18px}
+  .card .body{padding:16px; color:var(--muted)}
+  .letter{
+    background:#0e1520; border:1px dashed #3a4455; border-radius:12px; padding:12px; margin:10px 0;
+    position:relative;
+  }
+  .letter:before{
+    content:"Wax Seal"; position:absolute; right:-8px; top:-8px; font-size:10px;
+    padding:6px 8px; border-radius:8px; background:linear-gradient(180deg, #2d243f, #1d1630); border:1px solid #4b3a77; color:#d9c8ff; box-shadow:0 6px 14px #0008;
+    transform:rotate(6deg)
+  }
+  .riddle-input{
+    display:flex; gap:8px; margin-top:12px;
+  }
+  .riddle-input input{
+    flex:1; padding:10px 12px; border-radius:10px; border:1px solid #393057; background:#0f0c18; color:var(--ink);
+  }
+  .result{margin-top:8px; font-weight:700}
+  .ok{color: var(--accent)}
+  .no{color: var(--danger)}
+  .hint{font-size:12px; color:#9db2a9}
+  .spirit{
+    position:absolute; inset:auto -10% -10% auto; width:160px; height:160px; filter:drop-shadow(0 0 16px var(--glow)); opacity:.08;
+    background: radial-gradient(closest-side, #c1ffe6 0 40%, transparent 60%);
+    clip-path: polygon(50% 0, 60% 20%, 80% 30%, 60% 40%, 70% 60%, 50% 55%, 30% 60%, 40% 40%, 20% 30%, 40% 20%);
+    animation: floaty 6s ease-in-out infinite;
+  }
+  @keyframes floaty{ 50%{ transform: translateY(-5px)} }
+
+  .footer{
+    position:sticky; bottom:0; z-index:4; border-top:1px solid #2b2341;
+    background:linear-gradient(0deg, #0f0c18dd, #0f0c18cc 60%, transparent);
+  }
+  .ritual{
+    display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px;
+  }
+  .ritual .status{font-weight:800; letter-spacing:.3px}
+  .ritual .spell{
+    display:none;
+    background:#0f1522; border:1px solid #344; border-radius:12px; padding:12px; color:#cfe9e0;
+  }
+  .ritual.open .spell{display:block}
+  .ritual button.cast{background:linear-gradient(180deg, #0f2b20, #0b1f19); border-color:#246a56}
+
+  dialog{
+    border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:640px; width:calc(100% - 28px);
+    padding:0; box-shadow: 0 40px 120px #000f, inset 0 0 0 1px #2d2450;
+  }
+  dialog::backdrop{background:#0009}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #2d2450; background:#1a1530}
+  .modal-body{padding:16px; color:var(--muted)}
+  .x{background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer}
+
+  .hidden{display:none !important}
+  .small{font-size:12px}
+  .sep{height:1px; background:#2a2243; margin:12px 0}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+
+<header>
+  <div class="wrap">
+    <div class="title">
+      <div class="brand">
+        <div class="sigil" aria-hidden="true"></div>
+        <div>
+          <h1>Wicked Willow &middot; Atchison Gulch</h1>
+          <div class="progress" aria-label="Progress">
+            <div class="bar" aria-hidden="true"><i id="barFill" style="width:0%"></i></div>
+            <div class="coins" id="coinRow" aria-label="Coins">
+              <div class="coin" id="c1" title="Coin 1"></div>
+              <div class="coin" id="c2" title="Coin 2"></div>
+              <div class="coin" id="c3" title="Coin 3"></div>
+              <div class="coin" id="c4" title="Coin 4"></div>
+              <div class="coin" id="c5" title="Coin 5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="hintToggle" class="pill" aria-expanded="false">Hints: Off</button>
+        <button id="reset" class="pill" title="Reset your progress">Reset</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="small" style="color:var(--muted);margin:8px 0 0">
+    Explore each location, read the letters & spells, then solve the riddle. Each success mints a coin. Collect all five coins to perform the final ritual and lift Willow’s curse.
+  </p>
+
+  <div class="grid" id="grid">
+
+    <!-- SECTION 1 -->
+    <section class="card" id="s1" aria-labelledby="s1h">
+      <div class="head">
+        <span class="tag">1 · The Ridge</span>
+        <h2 id="s1h">Ashes & Echoes</h2>
+      </div>
+      <div class="body">
+        <p>The night the mine collapsed, Willow lit her broken lantern and spoke to the wind. Some say the hills still hold her words.</p>
+        <div class="letter" role="region" aria-label="Lantern Note">
+          <strong>Lantern Note, found on the ridge</strong>
+          <p><em>“Truth warned you, but greed made you deaf. If light returns to the lantern, the path might yet be seen.”</em></p>
+        </div>
+        <p><strong>Riddle:</strong> I’m not alive, yet I grow. I need the breath of air, yet I fear the fall of rain. What am I?</p>
+        <div class="riddle-input">
+          <input id="a1" placeholder="Type your answer…" autocomplete="off" />
+          <button data-check="1">Submit</button>
+        </div>
+        <div id="r1" class="result"></div>
+        <p class="hint hidden" id="h1">Hint: It burns in lanterns and eats what it’s fed.</p>
+        <div class="spirit" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="card" id="s2" aria-labelledby="s2h">
+      <div class="head">
+        <span class="tag">2 · Mine Mouth</span>
+        <h2 id="s2h">The Canary’s Warning</h2>
+      </div>
+      <div class="body">
+        <p>Families came to Willow in secret. Miners asked which shafts were safe. She told them to watch the birds.</p>
+        <div class="letter" role="region" aria-label="Miner's Letter">
+          <strong>Miner’s Pocket Letter</strong>
+          <p><em>“If the song stops, turn back. No vein of coal is worth a widow’s veil.”</em></p>
+        </div>
+        <p><strong>Riddle:</strong> I sing to save and die to warn. In darkness, I am a sentinel. What am I?</p>
+        <div class="riddle-input">
+          <input id="a2" placeholder="Type your answer…" autocomplete="off" />
+          <button data-check="2">Submit</button>
+        </div>
+        <div id="r2" class="result"></div>
+        <p class="hint hidden" id="h2">Hint: A tiny guardian of underground air.</p>
+        <div class="spirit" aria-hidden="true" style="left:-6%; bottom:-8%"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="card" id="s3" aria-labelledby="s3h">
+      <div class="head">
+        <span class="tag">3 · The Dry River</span>
+        <h2 id="s3h">Salt & Bones</h2>
+      </div>
+      <div class="body">
+        <p>The riverbed cracked after Willow’s curse. What once murmured now keeps its mouth full of dust.</p>
+        <div class="letter" role="region" aria-label="River Spell">
+          <strong>River-Binding Spell (scratched in silt)</strong>
+          <p><em>“Break my course and still my tongue; leave only salt upon my lungs.”</em></p>
+        </div>
+        <p><strong>Riddle:</strong> I run but cannot walk. I have a bed but never sleep. I have a mouth, yet never eat. What am I?</p>
+        <div class="riddle-input">
+          <input id="a3" placeholder="Type your answer…" autocomplete="off" />
+          <button data-check="3">Submit</button>
+        </div>
+        <div id="r3" class="result"></div>
+        <p class="hint hidden" id="h3">Hint: You’re standing in it—though now it’s dry.</p>
+        <div class="spirit" aria-hidden="true" style="right:-6%; bottom:-6%"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="card" id="s4" aria-labelledby="s4h">
+      <div class="head">
+        <span class="tag">4 · The Cottage</span>
+        <h2 id="s4h">The Mayor’s Head</h2>
+      </div>
+      <div class="body">
+        <p>Mayor Tobias Hargrove mocked Willow until the day he lost everything—except his voice.</p>
+        <div class="letter" role="region" aria-label="Cottage Whisper">
+          <strong>Whisper from the Box</strong>
+          <p><em>“Heh… look what she left me—only weight on my words.”</em></p>
+        </div>
+        <p><strong>Riddle (the Mayor speaks):</strong> Forwards I’m heavy; backwards I’m not. What am I?</p>
+        <div class="riddle-input">
+          <input id="a4" placeholder="Type your answer…" autocomplete="off" />
+          <button data-check="4">Submit</button>
+        </div>
+        <div id="r4" class="result"></div>
+        <p class="hint hidden" id="h4">Hint: Spell me in reverse and I vanish in weight.</p>
+        <div class="spirit" aria-hidden="true" style="left:-10%; bottom:-6%"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="card" id="s5" aria-labelledby="s5h">
+      <div class="head">
+        <span class="tag">5 · Town Square</span>
+        <h2 id="s5h">The Accusation</h2>
+      </div>
+      <div class="body">
+        <p>In the square, the crowd broke Willow’s lantern and spat her name into the dust. She left a final poem—read the first letters down.</p>
+        <div class="letter" role="region" aria-label="Acrostic Poem">
+          <strong>Willow’s Poem (Acrostic)</strong>
+          <p style="white-space:pre; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#e8defa">
+W e begged the hills for more than they would give.
+I  warned you softly, but you loved the earth too loud.
+L ooters of luck, you called it labor, called it life.
+L antern light is guidance, not a guarantee.
+O nly a fair pact will free this place again.
+W ill you honor what was broken?</p>
+        </div>
+        <p><strong>Question:</strong> Read the acrostic (first letters). Enter the single word Willow asks for to end the feud.</p>
+        <div class="riddle-input">
+          <input id="a5" placeholder="Type the one word…" autocomplete="off" />
+          <button data-check="5">Submit</button>
+        </div>
+        <div id="r5" class="result"></div>
+        <p class="hint hidden" id="h5">Hint: Take the first letter of each line and read downward.</p>
+        <div class="spirit" aria-hidden="true" style="right:-10%; bottom:-6%"></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- Footer / Ritual -->
+<footer class="footer">
+  <div class="wrap ritual" id="ritual">
+    <div>
+      <div class="status" id="ritualStatus">Ritual Locked — collect 5 coins.</div>
+      <div class="small" style="color:var(--muted)">Coins mint when you answer each section. Use “Hints” if you’re stuck.</div>
+    </div>
+    <div>
+      <button class="cast" id="castBtn" disabled>Perform Final Ritual</button>
+    </div>
+  </div>
+  <div class="wrap ritual spell" id="spellPane">
+    <div class="sep"></div>
+    <div class="spell">
+      <p><strong>Final Rite of Unbinding</strong></p>
+      <p style="color:#cfe9e0"><em>“Lantern rekindled, river released; song restored, and judgment ceased.<br>
+        From ridge to square, let grudges part—<br>
+        Return what’s owed and mend the heart.”</em></p>
+      <p class="small">Hold up your five coins, speak the rite together, and tap the button below to lift the curse.</p>
+      <button id="lift" class="pill">Lift the Curse</button>
+    </div>
+  </div>
+</footer>
+
+<!-- Modals -->
+<dialog id="prize">
+  <div class="modal-head">
+    <strong>✨ The Curse Lifts!</strong>
+    <button class="x" data-close="prize" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <p>The wind softens, the river stirs, and the Mayor’s whisper fades at last. Willow’s lantern glows clear and steady.</p>
+    <p><strong>Prize:</strong> Show this screen to the host to claim your reward and a <em>Witch’s Coin</em> sticker.</p>
+    <p class="small" style="color:#9bd9c5">Host tip: You can change the prize text in the HTML to anything—secret bar password, merch, treat, etc.</p>
+  </div>
+</dialog>
+
+<dialog id="about">
+  <div class="modal-head">
+    <strong>About This Game</strong>
+    <button class="x" data-close="about" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <p>Designed as a QR-code friendly party game. Each section reveals lore and a riddle; correct answers mint coins. Collect all five to unlock the group ritual.</p>
+    <ul>
+      <li>Progress saves in your browser (localStorage).</li>
+      <li><strong>Reset</strong> clears progress if you want to replay.</li>
+      <li><strong>Hints</strong> can be toggled On/Off.</li>
+    </ul>
+    <p class="small">Credits: Story & concept by Joey; code by your friendly ghost.</p>
+  </div>
+</dialog>
+
+<script>
+/*
+  Wicked Willow — Atchison Gulch
+  Answer key (lowercase, trimmed):
+   1: "fire"
+   2: "canary"
+   3: "river"
+   4: "ton"
+   5: "truce"     (acrostic WILLOW → “Willow” asks for a TRUCE)
+*/
+(function(){
+  const answers = {1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
+  const total = 5;
+  const coins = Array.from({length:5}, (_,i)=>document.getElementById('c'+(i+1)));
+  const bar = document.getElementById('barFill');
+  const resultEls = [null, 'r1','r2','r3','r4','r5'].map(id => id ? document.getElementById(id):null);
+  const inputs = [null,'a1','a2','a3','a4','a5'].map(id => id ? document.getElementById(id):null);
+  const hintEls = [null, 'h1','h2','h3','h4','h5'].map(id => id ? document.getElementById(id):null);
+  const ritualStatus = document.getElementById('ritualStatus');
+  const castBtn = document.getElementById('castBtn');
+  const spellPane = document.getElementById('spellPane');
+  const hintToggle = document.getElementById('hintToggle');
+  const resetBtn = document.getElementById('reset');
+
+  const getState = () => {
+    try{
+      return JSON.parse(localStorage.getItem('willow_state')||'{}');
+    }catch{ return {}; }
+  };
+  const setState = (s) => localStorage.setItem('willow_state', JSON.stringify(s));
+
+  function init(){
+    const s = getState();
+    for(let i=1;i<=total;i++){
+      if(s['s'+i]) award(i, false);
+    }
+    updateProgress();
+    attachEvents();
+  }
+
+  function attachEvents(){
+    document.querySelectorAll('button[data-check]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const i = +btn.getAttribute('data-check');
+        check(i);
+      });
+    });
+
+    // Enter key submits
+    inputs.forEach((inp,i)=>{
+      if(!inp || i===0) return;
+      inp.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){ check(i); }
+      });
+    });
+
+    castBtn.addEventListener('click', ()=>{
+      spellPane.parentElement.classList.toggle('open');
+      spellPane.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    document.getElementById('lift').addEventListener('click', ()=>{
+      const dlg = document.getElementById('prize');
+      if(typeof dlg.showModal==='function') dlg.showModal();
+      confetti();
+    });
+
+    // About modal with hidden shortcut: double-click the sigil
+    document.querySelector('.sigil').addEventListener('dblclick', ()=>{
+      const about = document.getElementById('about');
+      if(typeof about.showModal==='function') about.showModal();
+    });
+
+    // Close buttons
+    document.querySelectorAll('[data-close]').forEach(x=>{
+      x.addEventListener('click', ()=> document.getElementById(x.dataset.close).close());
+    });
+
+    hintToggle.addEventListener('click', ()=>{
+      const on = hintToggle.getAttribute('aria-expanded')==='true';
+      setHints(!on);
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      if(confirm('Reset your progress? Coins and answers will be cleared.')){
+        localStorage.removeItem('willow_state');
+        location.reload();
+      }
+    });
+  }
+
+  function setHints(show){
+    hintToggle.setAttribute('aria-expanded', String(show));
+    hintToggle.textContent = 'Hints: ' + (show ? 'On' : 'Off');
+    for(let i=1;i<=total;i++){
+      hintEls[i].classList.toggle('hidden', !show);
+    }
+  }
+
+  function check(i){
+    const value = (inputs[i].value || '').trim().toLowerCase();
+    const correct = value === answers[i];
+    const msg = resultEls[i];
+    if(correct){
+      msg.innerHTML = 'Correct. Coin minted! ✨';
+      msg.className = 'result ok';
+      award(i, true);
+      updateProgress();
+    }else{
+      msg.textContent = 'Not quite. Try again.';
+      msg.className = 'result no';
+    }
+  }
+
+  function award(i, animate){
+    const s = getState();
+    if(!s['s'+i]){
+      s['s'+i] = true;
+      setState(s);
+    }
+    const el = coins[i-1];
+    el.classList.add('got');
+    if(animate){
+      el.animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}], {duration:550, easing:'ease-out'});
+    }
+  }
+
+  function updateProgress(){
+    const s = getState();
+    const count = Object.keys(s).filter(k=>/^s[1-5]$/.test(k) && s[k]).length;
+    const pct = Math.round((count/total)*100);
+    bar.style.width = pct + '%';
+    ritualStatus.textContent = (count===5) ? 'Ritual Ready — gather and cast the spell.' : `Ritual Locked — ${5-count} coin(s) remaining.`;
+    castBtn.disabled = (count<5);
+  }
+
+  // very tiny confetti
+  function confetti(){
+    const n=120;
+    const frag=document.createDocumentFragment();
+    for(let i=0;i<n;i++){
+      const d=document.createElement('div');
+      const size = 6+Math.random()*6;
+      d.style.cssText = `
+        position:fixed; left:${Math.random()*100}vw; top:-10px; width:${size}px; height:${size}px;
+        background:hsl(${Math.random()*300+60}deg 90% 70%); opacity:.9; border-radius:2px; z-index:10;
+        transform:translateY(0) rotate(0deg); box-shadow:0 0 6px #0006;
+      `;
+      frag.appendChild(d);
+      const dur = 1200 + Math.random()*1200;
+      d.animate([
+        { transform:`translateY(0) rotate(0deg)` },
+        { transform:`translate(${(Math.random()-.5)*60}px, 100vh) rotate(${Math.random()*720-360}deg)` }
+      ], { duration: dur, easing:'cubic-bezier(.2,.7,.2,1)', fill:'forwards' })
+      .onfinish = ()=> d.remove();
+    }
+    document.body.appendChild(frag);
+  }
+
+  // If you want hints visible by default, set to true:
+  setHints(false);
+  init();
+})();
+</script>
+</body>
+</html>
