@@ -9,7 +9,7 @@
   :root{
     --bg:#0c0a12; --panel:#131022; --ink:#f0e6ff; --muted:#c8b8ffb3;
     --accent:#9ef0c9; --accent2:#dbc2ff; --danger:#ff6b6b;
-    --coin:#f6c945; --glow:#52ffb380; --link:#b8f3d2;
+    --coin:#f6c945; --glow:#52ffb380;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -105,9 +105,13 @@
   .footer{position:sticky; bottom:0; z-index:4; border-top:1px solid #2b2341; background:linear-gradient(0deg, #0f0c18dd, #0f0c18cc 60%, transparent);}
   .ritual{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px;}
   .ritual .status{font-weight:800; letter-spacing:.3px}
-  .ritual .spell{display:none; background:#0f1522; border:1px solid #344; border-radius:12px; padding:12px; color:#cfe9e0;}
-  .ritual.open .spell{display:block}
-  .ritual button.cast{background:linear-gradient(180deg, #0f2b20, #0b1f19); border-color:#246a56}
+
+  /* RITUAL PANE VISIBILITY — FIXED */
+  #spellPane{display:none}
+  #spellPane.open{display:block}
+
+  /* Inner spell box styling */
+  .ritual .spell{background:#0f1522; border:1px solid #344; border-radius:12px; padding:12px; color:#cfe9e0;}
 
   dialog{
     border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:640px; width:calc(100% - 28px);
@@ -133,7 +137,6 @@
   #scare .face {
     width:min(90vw,700px); height:auto; opacity:0; filter:drop-shadow(0 0 20px #000);
     background-repeat:no-repeat; background-position:center; background-size:contain;
-    /* Inline scary face SVG as data URL (no external files) */
     background-image:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700">\
 <rect width="700" height="700" fill="black"/>\
@@ -345,6 +348,8 @@
       <button class="cast" id="castBtn" disabled>Perform Final Ritual</button>
     </div>
   </div>
+
+  <!-- FIXED: ritual pane toggled by #spellPane.open -->
   <div class="wrap ritual spell" id="spellPane">
     <div class="sep"></div>
     <div class="spell">
@@ -358,7 +363,7 @@
   </div>
 </footer>
 
-<!-- Jump Scare Overlay (no external files) -->
+<!-- Jump Scare Overlay -->
 <div id="scare" aria-hidden="true">
   <div class="flash"></div>
   <div class="face" role="img" aria-label="Wicked Willow appears"></div>
@@ -451,10 +456,10 @@
       });
     });
 
+    // FIXED: open the actual ritual pane when unlocked
     castBtn.addEventListener('click', ()=>{
-      // ensure ritual pane opens when unlocked
       if(castBtn.disabled) return;
-      document.querySelector('.footer .wrap').classList.add('open');
+      spellPane.classList.add('open');
       spellPane.scrollIntoView({behavior:'smooth', block:'start'});
     });
 
