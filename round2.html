@@ -48,7 +48,7 @@
 <header>
   <div class="wrap">
     <h1>Round 2 · Solo Hunt</h1>
-    <div class="small">Find every posted QR within <b>30 minutes</b>. Each scan reveals a message and fate: <b>+2</b>, <b>−1</b>, or <b>DOOM</b>. You may trade <b>once</b>.</div>
+    <div class="small">Find every posted QR within <b>30 minutes</b>. Each scan reveals a message and fate: <b>+2</b>, <b>−1</b>, or <b>DOOM</b>. You may trade <b>once</b>. <b>Auto-win at 10 coins.</b></div>
   </div>
 </header>
 
@@ -131,6 +131,7 @@ function W(v){ localStorage.setItem('willow_qr', JSON.stringify(v)); }
 const TIME_LIMIT_MIN=30;
 const FATE={ gain:0.55, lose:0.30, doom:0.15 };
 const COIN_CHANGE={ gain:+2, lose:-1 };
+const AUTO_WIN_POINTS = 10; /* NEW: auto-win threshold */
 const QR_TOKENS={
   'HBTRQJ':'Saloon','GF5CBF':'Hotel','PQBN4Q':'Jail','6TAL5X':'Blacksmith',
   'TKPXGF':'Church','2GYYSC':'Water Tower','7H2FUZ':'Train Tracks','NECQUF':'General Store',
@@ -165,21 +166,68 @@ const scanStop=document.getElementById('scanStop');
 
 let ticker=null, stream=null;
 
+/* ===== WebAudio (reliable sound on iOS/Android) ===== */
+let audioCtx = null;
+function primeAudio(){
+  try{
+    if(!audioCtx){
+      const C = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new C();
+    }
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+  }catch(e){ /* ignore */ }
+}
+function playSweep({good=true,duration=1.0}={}){
+  if(!audioCtx) return;
+  const ctx = audioCtx;
+  const master = ctx.createGain(); master.gain.value = 0.0001; master.connect(ctx.destination);
+
+  const osc = ctx.createOscillator(); osc.type='sawtooth';
+  const start = ctx.currentTime + 0.01;
+  const end = start + duration;
+  const startFreq = good ? 520 : 140;
+  const endFreq   = good ? 60  : 20;
+  osc.frequency.setValueAtTime(startFreq, start);
+  osc.frequency.exponentialRampToValueAtTime(endFreq, start + (good?0.45:0.9));
+
+  master.gain.setValueAtTime(0.0001, start);
+  master.gain.exponentialRampToValueAtTime(0.9, start+0.06);
+  master.gain.exponentialRampToValueAtTime(0.0001, end);
+
+  osc.connect(master);
+  osc.start(start); osc.stop(end);
+
+  // Add a faint noise burst for the BAD scare
+  if(!good){
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++){ data[i] = (Math.random()*2-1) * (1 - i/data.length); }
+    const noise = ctx.createBufferSource(); noise.buffer = buffer;
+    const nGain = ctx.createGain(); nGain.gain.value = 0.25;
+    noise.connect(nGain); nGain.connect(master);
+    noise.start(start); noise.stop(end);
+  }
+}
+
 /* ===== Boot ===== */
 (function boot(){
   document.addEventListener('click', (e)=>{
     const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); }
   });
+
+  // Prime audio on first user gesture (covers iOS autoplay policy)
+  ['click','touchstart'].forEach(ev=>document.addEventListener(ev, primeAudio, {once:true}));
+
   const s=S();
   if(s.name) nameInp.value=s.name;
-  startBtn.onclick=startRun;
+  startBtn.onclick=()=>{ primeAudio(); startRun(); };
   saveName.onclick=()=>{ const s=S(); const n=(nameInp.value||'').trim(); if(!n) return alert('Pick a codename first.'); s.name=n; W(s); alert('Saved.'); };
-  resetRun.onclick=resetRound2;
+  resetRun.onclick=()=>{ primeAudio(); resetRound2(); };
 
-  scanBtn.onclick=openScanner;
-  enterBtn.onclick=manualToken;
-  tradeBtn.onclick=useTrade;
-  liftBtn.onclick=winRitual;
+  scanBtn.onclick=()=>{ primeAudio(); openScanner(); };
+  enterBtn.onclick=()=>{ primeAudio(); manualToken(); };
+  tradeBtn.onclick=()=>{ primeAudio(); useTrade(); };
+  liftBtn.onclick=()=>{ primeAudio(); winRitual(); };
 
   // Restore running timer
   if(s.r2){ updateFoundUI(); if(s.r2.startedAt && !s.r2.over) startTicker(); }
@@ -250,8 +298,17 @@ function resolveToken(raw){
   if(fate==='lose'){ s.r2.points=Math.max(0,(s.r2.points||0)+COIN_CHANGE.lose); showMsg('A Voice from the Shaft', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> ${COIN_CHANGE.lose} coin`); }
   if(fate==='doom'){ s.r2.doom=true; s.r2.over=true; W(s); updateFoundUI(); return loseFlow('A Cold Hand', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> <span style="color:#ff6b6b">DOOM</span>`); }
 
+  // Save & refresh
   W(s); updateFoundUI();
 
+  // NEW: Auto-win when reaching 10+ coins before the timer ends
+  if(!s.r2.over && s.r2.points >= AUTO_WIN_POINTS){
+    s.r2.over = true; s.r2.win = true; W(s);
+    showMsg('Lantern Blazes', 'You gathered enough coin to sway the spirits. The ritual is ready.');
+    return winFlow();
+  }
+
+  // Still win if all checkpoints claimed
   if(Object.keys(s.r2.found).length === Object.keys(QR_TOKENS).length){
     s.r2.over=true; s.r2.win=true; W(s); winFlow();
   }
@@ -266,7 +323,7 @@ function useTrade(){
   const s=S();
   if(!s.r2 || s.r2.over || s.r2.doom) return alert('You need an active run.');
   if(s.r2.tradeUsed) return alert('Trade already used this run.');
-  const dir = prompt('Type "give" to give 1 coin, or "receive" to take 1 coin.').toLowerCase();
+  const dir = (prompt('Type "give" to give 1 coin, or "receive" to take 1 coin.')||'').toLowerCase();
   if(dir!=='give' && dir!=='receive') return;
   if(dir==='give') s.r2.points=Math.max(0,(s.r2.points||0)-1);
   if(dir==='receive') s.r2.points=(s.r2.points||0)+1;
@@ -285,23 +342,22 @@ async function loseFlow(title, html){
 function checkOutcome(){
   const s=S();
   if(s.r2.doom) return loseFlow('Your Footsteps Echo', 'The lantern goes dark. The curse finds your doorstep.');
+  if((s.r2.points||0) >= AUTO_WIN_POINTS) return winFlow();
   if(Object.keys(s?.r2?.found||{}).length !== Object.keys(QR_TOKENS).length) return loseFlow('Too Late','Midnight passes; the gulch exhales. The curse follows you home.');
   winFlow();
 }
 
-/* ===== Jump scares ===== */
-function jumpScare(good){ return new Promise(res=>{
-  const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
-  el.style.display='flex'; el.classList.add('scare-in');
-  try{
-    const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
-    const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(good?400:120, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(good?40:20, ctx.currentTime+(good?0.4:0.9));
-    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime+0.08); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+(good?0.9:1.4));
-    osc.connect(g); g.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime+(good?0.9:1.4));
-  }catch(e){}
-  setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
-});}
+/* ===== Jump scares with primed audio ===== */
+function jumpScare(good){
+  return new Promise(res=>{
+    primeAudio();
+    const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
+    el.style.display='flex'; el.classList.add('scare-in');
+    // sound
+    playSweep({good, duration: good?0.9:1.4});
+    setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
+  });
+}
 function winRitual(){ alert('✨ The curse lifts! Show this to the host for your reward.'); }
 
 /* ===== Scanner (ZXing) ===== */
