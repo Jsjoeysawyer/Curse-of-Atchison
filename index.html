@@ -3,384 +3,138 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Round 2 · Willow’s Favor</title>
+<title>Wicked Willow • Curse of Atchison</title>
 <meta name="theme-color" content="#111017">
 <style>
   :root{ --bg:#0c0a12; --panel:#131022; --ink:#f0e6ff; --muted:#c8b8ffb3; --accent:#9ef0c9; --danger:#ff6b6b; --coin:#f6c945; --glow:#52ffb380; }
   *{box-sizing:border-box} html,body{height:100%}
   body{ margin:0; background: radial-gradient(1200px 700px at 70% -10%, #1b1533 0%, var(--bg) 45%, #09070f 100%); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.55; overflow-x:hidden; }
-  .wrap{max-width:960px; margin:0 auto; padding:16px}
+  .wrap{max-width:940px; margin:0 auto; padding:16px}
   header{ position:sticky; top:0; z-index:5; backdrop-filter: blur(8px); background:linear-gradient(180deg, #0f0c18dd, #0f0c18cc 60%, transparent); border-bottom:1px solid #30264a; box-shadow: 0 10px 30px #000d; }
-  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .brand{display:flex; align-items:center; gap:10px}
-  .sigil{ width:36px; height:36px; border-radius:50%; background: conic-gradient(from 210deg, #3efac4, #8bdcff, #b28bff, #3efac4); box-shadow: 0 0 16px var(--glow), inset 0 0 12px #0009;}
-  h1{margin:0; font-weight:800; letter-spacing:.4px; font-size:18px}
-  .hud{ display:flex; align-items:center; gap:12px; }
-  .total{ background:#0f1522; border:1px solid #3c3161; padding:6px 10px; border-radius:10px; font-weight:800; color:#9ef0c9; }
-  .btn{ background:linear-gradient(180deg, #1d1733, #151029); border:1px solid #3c3161; color:var(--ink); padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700; box-shadow: 0 6px 16px #0009, inset 0 0 0 1px #0006; text-decoration:none; }
-  .grid{ display:grid; gap:16px; grid-template-columns:1fr; padding:16px 0 80px;} @media(min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
+  .title{display:flex; gap:12px; align-items:center; justify-content:space-between;}
+  .brand{display:flex; gap:14px; align-items:center;}
+  .sigil{ width:40px; height:40px; border-radius:50%; background: conic-gradient(from 210deg, #3efac4, #8bdcff, #b28bff, #3efac4); box-shadow: 0 0 16px var(--glow), inset 0 0 12px #0009; position:relative; }
+  .sigil:after{content:"★"; position:absolute; inset:0; display:grid; place-items:center; color:#0a0a12; font-size:18px; text-shadow:0 0 10px #000;}
+  h1{margin:0; font-weight:800; letter-spacing:.5px; font-size:20px}
+  .progress{display:flex; align-items:center; gap:8px; margin-top:10px;}
+  .bar{flex:1; height:10px; background:#1b1730; border-radius:99px; overflow:hidden; box-shadow: inset 0 0 0 1px #30264a;}
+  .bar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, #48f8c5, #b693ff); box-shadow: 0 0 16px var(--glow) inset, 0 0 12px var(--glow)}
+  .coins{display:flex; gap:6px}
+  .coin{ width:22px; height:22px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #fff8 0 20%, transparent 21%), linear-gradient(145deg, #ffeaa6, var(--coin));
+         border:1px solid #e0b94a; box-shadow: inset 0 0 6px #966f00, 0 2px 4px #000a; filter:grayscale(100%) opacity(.4);}
+  .coin.got{filter:none}
+  .grid{display:grid; gap:16px; grid-template-columns:1fr; padding:20px 16px 56px;} @media(min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
   .card{ background: linear-gradient(180deg, #17122b, #100c1d); border:1px solid #30264a; border-radius:16px; box-shadow: 0 20px 50px #000c, inset 0 0 0 1px #0008; overflow:hidden;}
-  .card .head{ padding:14px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #2a2243; background: linear-gradient(180deg, #1a1433, transparent); }
+  .card .head{ padding:16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #2a2243; background: linear-gradient(180deg, #1a1433, transparent); }
+  .tag{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #39465a; color:#a7c5c0; background: linear-gradient(180deg, #0f1e1a, #0b1412);}
   .card h2{margin:0; font-size:18px}
   .card .body{padding:16px; color:var(--muted)}
   .letter{background:#0e1520; border:1px dashed #3a4455; border-radius:12px; padding:12px; margin:10px 0; position:relative;}
   .letter:before{content:"Wax Seal"; position:absolute; right:-8px; top:-8px; font-size:10px; padding:6px 8px; border-radius:8px; background:linear-gradient(180deg, #2d243f, #1d1630); border:1px solid #4b3a77; color:#d9c8ff; box-shadow:0 6px 14px #0008; transform:rotate(6deg) }
-  .small{font-size:12px} .ok{color:#9ef0c9} .no{color:#ff6b6b}
-
-  /* Scanner overlay */
-  #scanOverlay{ position:fixed; inset:0; background:#000d; display:none; z-index:20; align-items:center; justify-content:center; padding:16px; }
-  #scanPanel{ width:min(720px, 94vw); background:#0e0c16; border:1px solid #3c3161; border-radius:16px; box-shadow:0 30px 80px #000c; overflow:hidden; }
-  #scanHead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid #2d2450; background:#151028; color:#cfe9e0; }
-  #scanBody{ padding:12px; }
-  #videoWrap{ position:relative; width:100%; aspect-ratio: 3/4; background:#000; border-radius:12px; overflow:hidden; }
-  #qrVideo{ width:100%; height:100%; object-fit:cover; display:block; }
-  #scanHint{ font-size:12px; color:#9db2a9; margin-top:8px; }
-  #scanClose{ background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer }
-
-  /* Footer / Ritual */
-  footer{ position:sticky; bottom:0; z-index:5; border-top:1px solid #2b2341; background:linear-gradient(0deg, #0f0c18dd, #0f0c18cc 60%, transparent); }
-  .ritual{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px;}
-  .ritual .status{font-weight:800; letter-spacing:.3px}
-  .cast{ background:linear-gradient(180deg, #1d1733, #151029); border:1px solid #3c3161; color:var(--ink); padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700; box-shadow: 0 6px 16px #0009, inset 0 0 0 1px #0006; }
-  #spellPane{display:none} #spellPane.open{display:block}
-  .spell{background:#0f1522; border:1px solid #344; border-radius:12px; padding:12px; color:#cfe9e0;}
-  .sep{height:1px; background:#2a2243; margin:12px 0}
-
-  /* Jump scare */
-  #scare { position:fixed; inset:0; background:#000; display:none; z-index:9999; align-items:center; justify-content:center; }
-  #scare .flash { position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, #ffffff, #ffd2d2 40%, #000 70%); opacity:0; }
-  #scare .face { width:min(90vw,700px); height:auto; opacity:0; filter:drop-shadow(0 0 20px #000);
-                 background-repeat:no-repeat; background-position:center; background-size:contain;
-                 background-image:url('data:image/svg+xml;utf8,\
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700">\
-<rect width="700" height="700" fill="black"/>\
-<g fill="white">\
-<ellipse cx="240" cy="260" rx="70" ry="95"/>\
-<ellipse cx="460" cy="260" rx="70" ry="95"/>\
-<path d="M210 480 Q350 620 490 480 Q350 520 210 480 Z" />\
-</g>\
-<g fill="black">\
-<ellipse cx="240" cy="270" rx="28" ry="38"/>\
-<ellipse cx="460" cy="270" rx="28" ry="38"/>\
-</g>\
-</svg>'); }
-  .scare-in .flash{animation: flash 0.25s ease forwards} .scare-in .face{animation: popIn 0.28s ease forwards 0.05s}
-  @keyframes popIn { from { transform:scale(0.65); opacity:0; } to { transform:scale(1); opacity:1; } }
-  @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0.2} }
+  .riddle-input{display:flex; gap:8px; margin-top:12px;}
+  .riddle-input input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid #393057; background:#0f0c18; color:#f0e6ff;}
+  .result{margin-top:8px; font-weight:700} .ok{color: var(--accent)} .no{color: var(--danger)}
+  .hint{font-size:12px; color:#9db2a9}
+  .cta{ display:none; margin:20px 0 40px; text-align:center;}
+  .cta a{ display:inline-block; background:linear-gradient(180deg, #1d1733, #151029); border:1px solid #3c3161; color:var(--ink); padding:12px 16px; border-radius:12px; font-weight:800; text-decoration:none; box-shadow:0 6px 16px #0009, inset 0 0 0 1px #0006; }
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap topbar">
-    <div class="brand">
-      <div class="sigil" aria-hidden="true"></div>
-      <div>
-        <h1>Round 2 · Willow’s Favor</h1>
-        <div class="small" style="color:#c8b8ffb3">Roam, scan, trade. Reach <b>10+</b> coins to unlock the ritual.</div>
+  <div class="wrap">
+    <div class="title">
+      <div class="brand">
+        <div class="sigil" aria-hidden="true"></div>
+        <div>
+          <h1>Wicked Willow · Curse of Atchison</h1>
+          <div class="progress"><div class="bar"><i id="barFill" style="width:0%"></i></div>
+            <div class="coins"><div class="coin" id="c1"></div><div class="coin" id="c2"></div><div class="coin" id="c3"></div><div class="coin" id="c4"></div><div class="coin" id="c5"></div></div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="hud">
-      <div class="total">Your Coins: <span id="coinTotal">—</span></div>
-      <a class="btn" href="index.html">← Back to Story</a>
-    </div>
+    <p class="small" style="color:#c8b8ffb3;margin:8px 0 0">Solve the 5 lore riddles to mint your coins. Round 2 moves to its own clean page.</p>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="grid">
-    <!-- Player pouch -->
-    <section class="card"><div class="head"><h2>Your Pouch</h2></div>
+  <div class="grid" id="grid">
+    <!-- 1 -->
+    <section class="card"><div class="head"><span class="tag">1 · The Ridge</span><h2>Ashes & Echoes</h2></div>
       <div class="body">
-        <div class="letter"><strong>Codename</strong><div class="content">
-          <p>Codename: <input id="name" placeholder="e.g., LanternFox" style="width:60%;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff"> <button id="saveName" class="btn">Save</button></p>
-          <p class="small">Tip: Keep this open as your live scoreboard.</p>
-        </div></div>
-        <div class="letter"><strong>Scan Stickers</strong><div class="content">
-          <p><button id="openScanner" class="btn">📷 Scan Sticker</button> <button id="manualToken" class="btn">Enter Token</button></p>
-          <div id="scanMsg" class="small"></div>
-        </div></div>
+        <div class="letter"><strong>Lantern Note</strong><div class="content"><p>“Truth warned you, but greed made you deaf…”</p></div></div>
+        <p><strong>Riddle:</strong> I eat what I’m fed, yet I perish if I drink; I dance when I’m hungry and leave only char and stink. What am I?</p>
+        <div class="riddle-input"><input id="a1" placeholder="Type your answer…"/><button data-check="1">Submit</button></div><div id="r1" class="result"></div>
+        <p class="hint" id="h1" style="display:none">Hint: Lanterns are its cradle; rain is its grave.</p>
       </div>
     </section>
+    <!-- 2 -->
+    <section class="card"><div class="head"><span class="tag">2 · Mine Mouth</span><h2>The Warning</h2></div>
+      <div class="body">
+        <div class="letter"><strong>Miner’s Pocket Letter</strong><div class="content"><p>“If the song stops, turn back…”</p></div></div>
+        <p><strong>Riddle:</strong> I save you by surrendering breath, a sentinel whose voice foretells death. What am I?</p>
+        <div class="riddle-input"><input id="a2" placeholder="Type your answer…"/><button data-check="2">Submit</button></div><div id="r2" class="result"></div>
+        <p class="hint" id="h2" style="display:none">Hint: A tiny singer in a cage.</p>
+      </div>
+    </section>
+    <!-- 3 -->
+    <section class="card"><div class="head"><span class="tag">3 · The Dry River</span><h2>Salt & Bones</h2></div>
+      <div class="body">
+        <div class="letter"><strong>River-Binding Spell</strong><div class="content"><p>“Break my course and still my tongue…”</p></div></div>
+        <p><strong>Riddle:</strong> With banks but no vault, a mouth without teeth, I flee to the ocean yet never grow feet. What am I?</p>
+        <div class="riddle-input"><input id="a3" placeholder="Type your answer…"/><button data-check="3">Submit</button></div><div id="r3" class="result"></div>
+        <p class="hint" id="h3" style="display:none">Hint: Its bed is not for sleeping.</p>
+      </div>
+    </section>
+    <!-- 4 -->
+    <section class="card"><div class="head"><span class="tag">4 · The Cottage</span><h2>The Mayor’s Head</h2></div>
+      <div class="body">
+        <div class="letter"><strong>Whisper from the Box</strong><div class="content"><p>“Heh… look what she left me—only weight on my words.”</p></div></div>
+        <p><strong>Riddle:</strong> Read me forward and I burden you; read me backward and I bother you not. What am I?</p>
+        <div class="riddle-input"><input id="a4" placeholder="Type your answer…"/><button data-check="4">Submit</button></div><div id="r4" class="result"></div>
+        <p class="hint" id="h4" style="display:none">Hint: A three-letter unit.</p>
+      </div>
+    </section>
+    <!-- 5 -->
+    <section class="card"><div class="head"><span class="tag">5 · Town Square</span><h2>The Accusation</h2></div>
+      <div class="body">
+        <div class="letter"><strong>Willow’s Poem (Acrostic)</strong><div class="content">
+          <p><b>T</b>he hills remember what the town forgot.</p>
+          <p><b>R</b>estore the lantern; let blame burn out.</p>
+          <p><b>U</b>ndo the oath of anger with a single word.</p>
+          <p><b>C</b>ease your shouting; let silence mend.</p>
+          <p><b>E</b>nd what began in fear—begin again in truth.</p>
+        </div></div>
+        <p><strong>Question:</strong> Read the acrostic. Enter the single word to end the curse.</p>
+        <div class="riddle-input"><input id="a5" placeholder="Type the one word…"/><button data-check="5">Submit</button></div><div id="r5" class="result"></div>
+        <p class="hint" id="h5" style="display:none">Hint: Take the first letter of each line.</p>
+      </div>
+    </section>
+  </div>
 
-    <!-- Trading -->
-    <section class="card"><div class="head"><h2>Trade 1 Coin</h2></div>
-      <div class="body">
-        <div class="letter"><strong>Trade</strong><div class="content">
-          <p><button id="showTrade" class="btn">Show Trade Code (Send 1)</button> <button id="recvTrade" class="btn">Receive 1 (Enter Code)</button></p>
-          <div id="tradeArea" class="small"></div>
-        </div></div>
-        <div class="small" style="opacity:.8">Honor-system: sender taps “Confirm Transfer”; receiver enters the 4-digit code.</div>
-      </div>
-    </section>
-
-    <!-- Willow's Whisper -->
-    <section class="card"><div class="head"><h2>Willow’s Whisper</h2></div>
-      <div class="body">
-        <div class="letter"><strong>Fate Choice</strong><div class="content">
-          <p>Random events will appear. Choose your fate…</p>
-          <div id="whisperArea" class="small"></div>
-        </div></div>
-      </div>
-    </section>
-
-    <!-- Ritual -->
-    <section class="card"><div class="head"><h2>Final Rite</h2></div>
-      <div class="body">
-        <div class="letter"><strong>Status</strong><div class="content">
-          <p id="ritualText" class="small">Locked — you need 10+ coins.</p>
-          <p><button id="castBtn" class="btn" disabled>Perform Final Ritual</button></p>
-          <div id="spellPane" class="spell" style="display:none">
-            <div class="sep"></div>
-            <p><strong>Final Rite of Unbinding</strong></p>
-            <p style="color:#cfe9e0"><em>“Lantern rekindled, river released; song restored, and judgment ceased.<br>From ridge to square, let grudges part—<br>Return what’s owed and mend the heart.”</em></p>
-            <p class="small">Gather in a circle and tap “Lift the Curse”.</p>
-            <p><button id="lift" class="btn">Lift the Curse</button></p>
-          </div>
-        </div></div>
-      </div>
-    </section>
+  <div class="cta" id="cta">
+    <a href="round2.html">Proceed to Round 2 →</a>
   </div>
 </main>
 
-<!-- Scanner Overlay -->
-<div id="scanOverlay" aria-hidden="true">
-  <div id="scanPanel">
-    <div id="scanHead">
-      <div>QR Scanner — point at a Round 2 sticker</div>
-      <button id="scanClose">Close</button>
-    </div>
-    <div id="scanBody">
-      <div id="videoWrap">
-        <video id="qrVideo" playsinline muted></video>
-      </div>
-      <div id="scanHint" class="small">If it won’t focus, move closer or tilt slightly. No GPS, no uploads — all on your device.</div>
-    </div>
-  </div>
-</div>
-
-<!-- Prize Dialog -->
-<dialog id="prize">
-  <div class="modal-head"><strong>✨ The Curse Lifts!</strong><button class="btn" id="closePrize">Close</button></div>
-  <div class="modal-body"><p>The wind softens, the river stirs, and the Mayor’s whisper fades at last.</p><p><strong>Prize:</strong> Show this to the host for your reward.</p></div>
-</dialog>
-
-<!-- Loser’s Curse -->
-<dialog id="loser">
-  <div class="modal-head"><strong>Loser’s Curse 😈</strong><button class="btn" id="closeLoser">Close</button></div>
-  <div class="modal-body">
-    <p>You’ve been <em>seriously</em> cursed. Pick one silly forfeit to clear it:</p>
-    <ul>
-      <li>Wear the Mayor’s mustache (drawn on finger) for 5 minutes.</li>
-      <li>Speak only in rhyme for 2 minutes.</li>
-      <li>Ask a stranger for a ghost story.</li>
-    </ul>
-    <p class="small">When done, take Willow’s pity: solve this tiny riddle for +1 back:</p>
-    <p><em>“I have keys but open no doors; I have space but no rooms. What am I?”</em></p>
-    <p><input id="loserAns" placeholder="answer…"> <button id="loserSubmit" class="btn">Redeem +1</button></p>
-    <div id="loserMsg" class="small"></div>
-  </div>
-</dialog>
-
-<!-- jsQR -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
-/* ===== Shared state helpers ===== */
+const LVL1_ANS = {1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
+const ids=['a1','a2','a3','a4','a5'], rs=['r1','r2','r3','r4','r5'];
+const inputs=ids.map(id=>document.getElementById(id)); const results=rs.map(id=>document.getElementById(id));
+const coins=[...document.querySelectorAll('.coin')]; const bar=document.getElementById('barFill'); const cta=document.getElementById('cta');
 function getState(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
 function setState(s){ localStorage.setItem('willow_qr', JSON.stringify(s)); }
-/* TOKEN EFFECTS (matches your printed stickers) */
-const TOKEN_EFFECTS = {
-  'B1H3X9':'gain1','B2L2M4':'gain1','B3Q7K1':'gain1','B4N8P2':'gain1',
-  'G2A7R5':'gain2','G2C1T8':'gain2',
-  'C1D9Z3':'lose1','C2F4Y6':'lose1','C3J2V8':'lose1','C4K5U1':'lose1',
-  'T2M8Q4':'lose2','T2R6N7':'lose2',
-  'D0O0M1':'wipe','D0O0M2':'wipe'
-};
-function r2State(){ const s=getState(); s.round2 = s.round2 || { coins: null, usedTokens:{} }; setState(s); return s.round2; }
-function setR2(p){ const s=getState(); s.round2 = p; setState(s); }
+function updateProgress(){ const s=getState(); const count=[1,2,3,4,5].filter(k=>s['s'+k]).length; bar.style.width=(count/5*100)+'%'; cta.style.display = count===5 ? 'block':'none'; }
+function award(i){ const s=getState(); if(!s['s'+i]){ s['s'+i]=true; setState(s);} coins[i-1].classList.add('got'); }
+inputs.forEach((_,idx)=>{ const btn=document.querySelector(`button[data-check="${idx+1}"]`); btn.onclick=()=>{ const val=(inputs[idx].value||'').trim().toLowerCase(); if(val===LVL1_ANS[idx+1]){ results[idx].textContent='Correct. Coin minted! ✨'; results[idx].className='result ok'; award(idx+1); updateProgress(); } else { results[idx].textContent='Not quite. Try again.'; results[idx].className='result no'; } }; });
+(function boot(){ const s=getState(); for(let i=1;i<=5;i++){ if(s['s'+i]) coins[i-1].classList.add('got'); } updateProgress(); })();
 
-/* ===== UI refs ===== */
-const els = {
-  coinTotal: document.getElementById('coinTotal'),
-  name: document.getElementById('name'),
-  saveName: document.getElementById('saveName'),
-  manualToken: document.getElementById('manualToken'),
-  openScanner: document.getElementById('openScanner'),
-  scanMsg: document.getElementById('scanMsg'),
-  showTrade: document.getElementById('showTrade'),
-  recvTrade: document.getElementById('recvTrade'),
-  tradeArea: document.getElementById('tradeArea'),
-  whisperArea: document.getElementById('whisperArea'),
-  castBtn: document.getElementById('castBtn'),
-  ritualText: document.getElementById('ritualText'),
-  spellPane: document.getElementById('spellPane'),
-  lift: document.getElementById('lift'),
-  prize: document.getElementById('prize'),
-  closePrize: document.getElementById('closePrize'),
-  loser: document.getElementById('loser'),
-  closeLoser: document.getElementById('closeLoser'),
-  loserAns: document.getElementById('loserAns'),
-  loserSubmit: document.getElementById('loserSubmit'),
-};
-
-/* ===== Boot Round 2 ===== */
-function init(){
-  const s=getState();
-  // Require riddles complete to be "official" start – but still allow token processing so folks who scan first aren't stuck
-  const riddlesDone=[1,2,3,4,5].every(i=>s['s'+i]);
-  const r=r2State();
-  if(r.coins==null){ r.coins = 5; setR2(r); }
-  els.coinTotal.textContent = r.coins;
-  if(s.name) els.name.value = s.name;
-
-  els.saveName.onclick=()=>{ const v=(els.name.value||'').trim(); if(!v) return alert('Pick a codename first.'); s.name=v; setState(s); toast('Codename saved: @'+v); };
-  els.manualToken.onclick=()=>{ const t = prompt('Enter the token printed on the sticker (e.g., B1H3X9):'); if(!t) return; applyToken(t.trim().toUpperCase()); };
-  els.showTrade.onclick=()=>startTradeSend();
-  els.recvTrade.onclick=()=>startTradeReceive();
-  scheduleWhisper();
-
-  // Ritual actions
-  els.castBtn.onclick=()=>{ els.spellPane.style.display='block'; };
-  els.lift.onclick=()=>{ jumpScare().then(()=>{ if(els.prize && els.prize.showModal) els.prize.showModal(); }); };
-  if(els.closePrize) els.closePrize.onclick=()=>els.prize.close();
-  if(els.closeLoser) els.closeLoser.onclick=()=>els.loser.close();
-  els.loserSubmit.onclick=()=>{ const v=(els.loserAns.value||'').trim().toLowerCase(); if(v==='keyboard'){ adjustCoins(+1,'pity from Willow'); document.getElementById('loserMsg').textContent='Pity granted. +1 coin.'; } else { document.getElementById('loserMsg').textContent='Not it. (Hint: you are typing on one.)'; } };
-
-  // Process QR params if present (keeps stickers working even if someone opens round2.html directly)
-  const p = new URLSearchParams(location.search);
-  const token = p.get('t') || p.get('token'); const fx=p.get('fx');
-  if(token) setTimeout(()=>applyToken(token.toUpperCase(), fx), 300);
-
-  // Scanner
-  setupScanner();
-
-  // Gate ritual
-  checkRitual();
-}
-
-/* ===== Coins / Effects ===== */
-function adjustCoins(delta, reason){
-  const r = r2State();
-  r.coins = Math.max(0, (r.coins||0) + delta);
-  setR2(r);
-  els.coinTotal.textContent = r.coins;
-  els.scanMsg.textContent = `${delta>0?'+':'−'}${Math.abs(delta)} coin ${reason?`(${reason})`:''}`;
-  els.scanMsg.style.color = delta>0 ? '#9ef0c9' : '#ff6b6b';
-  checkRitual();
-  if(r.coins===0 && els.loser && !els.loser.open){ els.loser.showModal(); }
-}
-function applyToken(token, fxOverride){
-  const r = r2State();
-  if(r.usedTokens[token]){ toast('Already used on this device.'); return; }
-  const fx = TOKEN_EFFECTS[token] || fxOverride;
-  if(!fx){ toast('Unknown or invalid token.'); return; }
-  r.usedTokens[token]=true; setR2(r);
-  switch(fx){
-    case 'gain1': adjustCoins(+1,'blessing'); break;
-    case 'gain2': adjustCoins(+2,'golden boon'); break;
-    case 'lose1': adjustCoins(-1,'curse'); break;
-    case 'lose2': adjustCoins(-2,'tangled hex'); break;
-    case 'wipe':  const lost = r.coins||0; r.coins=0; setR2(r); els.coinTotal.textContent=r.coins; toast(`Doom Mark! You lost ${lost} coin(s).`); checkRitual(); break;
-    default: toast('Token had no effect.');
-  }
-}
-function checkRitual(){
-  const r=r2State(); const ok = (r.coins||0) >= 10;
-  els.castBtn.disabled = !ok;
-  els.ritualText.textContent = ok ? 'Ready — you may perform the ritual.' : 'Locked — you need 10+ coins.';
-  if(ok){ toast('Ritual unlocked!'); }
-}
-
-/* ===== Trading ===== */
-function startTradeSend(){
-  const r=r2State(); if((r.coins||0)<1) return toast('You need at least 1 coin to send.');
-  const code=(''+Math.floor(1000+Math.random()*9000));
-  els.tradeArea.innerHTML = `<p><b>Share this code:</b> <span style="color:#9ef0c9">${code}</span></p>
-    <button id="confirmSend" class="btn">Confirm Transfer (−1)</button>`;
-  document.getElementById('confirmSend').onclick=()=>{ adjustCoins(-1,'trade sent'); els.tradeArea.innerHTML='Sent. Tell them to claim it.'; };
-}
-function startTradeReceive(){
-  const code = prompt('Enter the 4-digit code they showed you:'); if(!code || !/^\d{4}$/.test(code)) return;
-  adjustCoins(+1,'trade received'); els.tradeArea.textContent='Received +1.';
-}
-
-/* ===== Willow’s Whisper ===== */
-function scheduleWhisper(){
-  const ms = 1000*(60*10 + Math.floor(Math.random()*300)); // 10–15 min
-  setTimeout(()=>{ showWhisper(); scheduleWhisper(); }, ms);
-}
-function showWhisper(){
-  const choices = [
-    {label:'Accept Boon (+1)', delta:+1, flair:'“Take what the wind gives.”'},
-    {label:'Accept Hex (−1)', delta:-1, flair:'“Balance must be paid.”'},
-    {label:'Decline', delta:0, flair:'The whisper fades.'}
-  ];
-  els.whisperArea.innerHTML = `<p><em>Willow’s Whisper:</em> “Favor or forfeit?”</p>`+
-    choices.map((c,i)=>`<button class="btn" data-whisper="${i}">${c.label}</button>`).join(' ')+
-    `<p class="small" style="opacity:.8">Choose once; it vanishes.</p>`;
-  els.whisperArea.querySelectorAll('[data-whisper]').forEach(b=>{
-    b.onclick=()=>{ const i=+b.getAttribute('data-whisper'); const c=choices[i]; if(c.delta) adjustCoins(c.delta,'whisper'); els.whisperArea.innerHTML = `<p>${c.flair}</p>`; };
-  });
-}
-
-/* ===== Camera Scanner (jsQR) ===== */
-const scanOverlay=document.getElementById('scanOverlay');
-const scanClose=document.getElementById('scanClose');
-const qrVideo=document.getElementById('qrVideo');
-let scanStream=null, rafId=null, scanCanvas=null, scanCtx=null;
-
-function setupScanner(){
-  document.getElementById('openScanner').onclick=async()=>{ try{ await openScanner(); }catch(e){ alert('Could not open camera. Use Enter Token.'); console.error(e);} };
-  scanClose.onclick=()=>stopScanner(true);
-}
-async function openScanner(){
-  scanOverlay.style.display='flex';
-  const constraints={ video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }, audio:false };
-  scanStream = await navigator.mediaDevices.getUserMedia(constraints);
-  qrVideo.srcObject = scanStream; await qrVideo.play();
-  scanCanvas=document.createElement('canvas'); scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
-  scanLoop();
-}
-function stopScanner(hide){
-  if(rafId) cancelAnimationFrame(rafId); rafId=null;
-  if(qrVideo){ qrVideo.pause(); qrVideo.srcObject=null; }
-  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
-  if(hide) scanOverlay.style.display='none';
-}
-function scanLoop(){
-  if(!qrVideo || qrVideo.readyState<2){ rafId=requestAnimationFrame(scanLoop); return; }
-  scanCanvas.width=qrVideo.videoWidth; scanCanvas.height=qrVideo.videoHeight;
-  scanCtx.drawImage(qrVideo,0,0,scanCanvas.width,scanCanvas.height);
-  const imageData=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
-  const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:"dontInvert"});
-  if(code && code.data){ const raw=(code.data||'').trim(); stopScanner(true); handleScannedText(raw); return; }
-  rafId=requestAnimationFrame(scanLoop);
-}
-function handleScannedText(raw){
-  try{
-    let token=null, fx=null;
-    if(/^https?:\/\//i.test(raw)){ const u=new URL(raw); token=u.searchParams.get('t')||u.searchParams.get('token'); fx=u.searchParams.get('fx'); }
-    else token = raw.toUpperCase();
-    if(token) { applyToken(token.toUpperCase(), fx); toast('QR applied.'); }
-    else toast('QR read, but no token found. Use Enter Token.');
-  }catch(e){ toast('Could not parse QR. Use Enter Token.'); }
-}
-
-/* ===== FX: UX bits ===== */
-function toast(msg){ const t=document.createElement('div'); t.textContent=msg;
-  t.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#1a1530;color:#cfe9e0;border:1px solid #463a73;padding:8px 12px;border-radius:10px;z-index:99;box-shadow:0 8px 20px #0009';
-  document.body.appendChild(t); setTimeout(()=>t.remove(), 1800);
-}
-function jumpScare(){ return new Promise(res=>{ const scare=document.getElementById('scare'); scare.style.display='flex'; scare.classList.add('scare-in');
-  try{ const C=window.AudioContext||window.webkitAudioContext; const ctx=new C(); const N=2*ctx.sampleRate, nb=ctx.createBuffer(1,N,ctx.sampleRate), ch=nb.getChannelData(0);
-    for(let i=0;i<N;i++) ch[i]=(Math.random()*2-1)*(1-i/N);
-    const nsrc=ctx.createBufferSource(); nsrc.buffer=nb; const osc=ctx.createOscillator(); osc.type='sawtooth';
-    osc.frequency.setValueAtTime(380, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime+0.4);
-    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.8, ctx.currentTime+0.08); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.9);
-    nsrc.connect(g); osc.connect(g); g.connect(ctx.destination); nsrc.start(); osc.start(); nsrc.stop(ctx.currentTime+0.9); osc.stop(ctx.currentTime+0.9);
-  }catch(e){} setTimeout(()=>{ scare.style.display='none'; scare.classList.remove('scare-in'); res(); }, 1200); }); }
-
-/* ===== Init ===== */
-init();
+// ROUTER: if QR params are present, forward them to Round 2 (keeps sticker compatibility)
+(function routeQr(){
+  const p=new URLSearchParams(location.search);
+  const has = p.has('t')||p.has('token')||p.has('fx')||p.has('gain')||p.has('curse')||p.has('wipe');
+  if(has){ location.replace('round2.html?'+p.toString()); }
+})();
 </script>
 </body>
 </html>
