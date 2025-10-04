@@ -12,6 +12,10 @@
   header{padding:18px 16px; border-bottom:1px solid #2b2441; position:sticky; top:0; background:#0f0c18cc; backdrop-filter:blur(8px)}
   .wrap{max-width:880px; margin:0 auto; padding:0 12px}
   h1{margin:0; font-size:22px}
+  .toprow{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .select, .btn{padding:9px 12px; border-radius:12px; border:1px solid #3d3264; background:linear-gradient(180deg,#1a1430,#120d22); color:#fff; font-weight:700}
+  .select{appearance:none}
   .progress{display:flex; gap:10px; align-items:center; margin-top:10px}
   .bar{height:10px; flex:1; background:#1a1530; border-radius:999px; overflow:hidden; border:1px solid #2f2750}
   .bar i{display:block; height:100%; width:0%; background:linear-gradient(90deg, #5df3c8, #b79aff)}
@@ -23,20 +27,30 @@
   .tag{display:inline-block; font-size:12px; border:1px solid #3a315d; border-radius:999px; padding:4px 8px; color:#b7a7ff; margin-bottom:8px}
   .riddle{margin-top:8px}
   .riddle input{width:100%; padding:10px; border-radius:10px; border:1px solid #3a315d; background:#0f0c18; color:var(--ink)}
-  .btn{display:inline-block; padding:9px 14px; border-radius:12px; border:1px solid #3d3264; background:linear-gradient(180deg,#1a1430,#120d22); color:var(--ink); font-weight:700; cursor:pointer}
-  .btn[disabled]{opacity:.45; cursor:not-allowed}
-  .hint{color:var(--hint); font-size:12px; opacity:.85}
   .result{margin-top:6px; font-weight:700}
   .ok{color:var(--ok)} .no{color:var(--no)}
+  .hint{color:var(--hint); font-size:12px; opacity:.9; margin-top:6px}
   footer{position:sticky; bottom:0; border-top:1px solid #2b2441; background:#0f0c18cc; backdrop-filter:blur(8px)}
   .foot{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px}
   .cta{padding:12px 16px; border-radius:12px; border:1px solid #3d3264; background:linear-gradient(180deg,#241a45,#191236); color:#fff; font-weight:800}
+  .cta[aria-disabled="true"]{opacity:.45; pointer-events:none}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <h1>Curse of Atchison · Round 1 (Lore Riddles)</h1>
+    <div class="toprow">
+      <h1>Curse of Atchison · Round 1 (Lore Riddles)</h1>
+      <div class="controls">
+        <label for="hintLevel" class="small">Hint style:</label>
+        <select id="hintLevel" class="select">
+          <option value="off">Off</option>
+          <option value="subtle">Subtle</option>
+          <option value="direct">Direct</option>
+        </select>
+        <button id="reset" class="btn" title="Reset Round 1 progress">Reset Round 1</button>
+      </div>
+    </div>
     <div class="progress">
       <div class="bar"><i id="bar"></i></div>
       <div class="coins">
@@ -57,7 +71,7 @@
       <div class="riddle">
         <p><b>Riddle:</b> I eat what I’m fed, yet I perish if I drink; I dance when I’m hungry and leave only char and stink.</p>
         <input id="a1" placeholder="Your answer…"><div id="r1" class="result"></div>
-        <div class="hint">Hint: Lanterns are its cradle; rain is its grave.</div>
+        <div id="h1" class="hint"></div>
       </div>
     </section>
 
@@ -67,7 +81,7 @@
       <div class="riddle">
         <p><b>Riddle:</b> I save you by surrendering breath, a sentinel whose voice foretells death.</p>
         <input id="a2" placeholder="Your answer…"><div id="r2" class="result"></div>
-        <div class="hint">Hint: A tiny singer in a cage.</div>
+        <div id="h2" class="hint"></div>
       </div>
     </section>
 
@@ -77,7 +91,7 @@
       <div class="riddle">
         <p><b>Riddle:</b> With banks but no vault, a mouth without teeth, I flee to the ocean yet never grow feet.</p>
         <input id="a3" placeholder="Your answer…"><div id="r3" class="result"></div>
-        <div class="hint">Hint: Its bed is not for sleeping.</div>
+        <div id="h3" class="hint"></div>
       </div>
     </section>
 
@@ -87,7 +101,7 @@
       <div class="riddle">
         <p><b>Riddle:</b> Read me forward and I burden you; read me backward and I bother you not.</p>
         <input id="a4" placeholder="Your answer…"><div id="r4" class="result"></div>
-        <div class="hint">Hint: A three-letter unit.</div>
+        <div id="h4" class="hint"></div>
       </div>
     </section>
 
@@ -97,7 +111,7 @@
       <div class="riddle">
         <p><b>Question:</b> Read the acrostic TRUCE — enter the single word that ends the curse.</p>
         <input id="a5" placeholder="Your answer…"><div id="r5" class="result"></div>
-        <div class="hint">Hint: Take the first letter of each line.</div>
+        <div id="h5" class="hint"></div>
       </div>
     </section>
   </div>
@@ -111,42 +125,106 @@
 </footer>
 
 <script>
+/* ==== Answers ==== */
 const ANSWERS={1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
+
+/* ==== Hint text for each style ==== */
+const HINTS={
+  off: {1:'',2:'',3:'',4:'',5:''},
+  subtle: {
+    1:'Lanterns are its cradle; rain is its grave.',
+    2:'A tiny singer in a cage.',
+    3:'Its bed is not for sleeping.',
+    4:'A three-letter unit.',
+    5:'Take the first letter of each line.'
+  },
+  direct: {
+    1:'It needs air and fuel, not water.',
+    2:'Miners carried it to warn of gas.',
+    3:'It has banks, a mouth, and a current.',
+    4:'Forward it weighs; backward it is not.',
+    5:'The acrostic spells a single word.'
+  }
+};
+
 const coins=[...Array(5)].map((_,i)=>document.getElementById('c'+(i+1)));
 const resIds=[1,2,3,4,5].map(i=>document.getElementById('r'+i));
 const inputs=[1,2,3,4,5].map(i=>document.getElementById('a'+i));
-const bar=document.getElementById('bar'); const status=document.getElementById('status'); const link=document.getElementById('toRound2');
+const hintEls=[1,2,3,4,5].map(i=>document.getElementById('h'+i));
+const bar=document.getElementById('bar'); 
+const statusEl=document.getElementById('status'); 
+const link=document.getElementById('toRound2');
+const hintLevelSel=document.getElementById('hintLevel');
+const resetBtn=document.getElementById('reset');
 
+/* ==== State helpers ==== */
 function S(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
 function W(v){ localStorage.setItem('willow_qr', JSON.stringify(v)); }
 
-function boot(){
-  const s=S();
+/* ==== Boot ==== */
+(function boot(){
+  // restore hint level
+  const s=S(); const level=s.hintLevel || 'subtle';
+  hintLevelSel.value = level;
+  renderHints(level);
+
+  // restore coins
   for(let i=1;i<=5;i++){ if(s['s'+i]) coins[i-1].classList.add('got'); }
-  inputs.forEach((el,i)=>{ el.addEventListener('keydown',e=>{ if(e.key==='Enter') check(i+1); }); el.addEventListener('blur',()=>check(i+1)); });
+
+  // wire events
+  inputs.forEach((el,i)=>{ 
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter') check(i+1); });
+    el.addEventListener('blur',()=>check(i+1)); 
+  });
+  hintLevelSel.addEventListener('change', ()=>{
+    const s=S(); s.hintLevel = hintLevelSel.value; W(s); renderHints(s.hintLevel);
+  });
+  resetBtn.addEventListener('click', ()=>{
+    if(!confirm('Reset Round 1 progress and answers?')) return;
+    const s=S();
+    // Clear only Round 1 flags; keep name/round 2 if present
+    for(let i=1;i<=5;i++){ delete s['s'+i]; }
+    W(s);
+    inputs.forEach(el=>el.value='');
+    resIds.forEach(el=>{ el.textContent=''; el.className='result'; });
+    coins.forEach(c=>c.classList.remove('got'));
+    update();
+  });
+
   update();
-}
+})();
+
+/* ==== Riddle checking ==== */
 function check(i){
   const v=(inputs[i-1].value||'').trim().toLowerCase();
   if(!v) return;
   if(v===ANSWERS[i]){
-    resIds[i-1].textContent='Correct. Coin minted!'; resIds[i-1].className='result ok';
+    resIds[i-1].textContent='Correct. Coin minted!'; 
+    resIds[i-1].className='result ok';
     const s=S(); if(!s['s'+i]){ s['s'+i]=true; W(s); coins[i-1].classList.add('got'); }
     update();
   }else{
-    resIds[i-1].textContent='Not quite.'; resIds[i-1].className='result no';
+    resIds[i-1].textContent='Not quite.'; 
+    resIds[i-1].className='result no';
   }
 }
+
+/* ==== Progress + Hints ==== */
 function update(){
   const s=S(); const n=[1,2,3,4,5].filter(i=>s['s'+i]).length;
   bar.style.width=(n/5*100)+'%';
   if(n===5){
-    status.textContent='Round 2 unlocked. Tap when ready.'; link.removeAttribute('aria-disabled'); link.classList.remove('disabled');
+    statusEl.textContent='Round 2 unlocked. Tap when ready.'; 
+    link.removeAttribute('aria-disabled');
   }else{
-    status.textContent=`${5-n} to go…`;
+    statusEl.textContent=`${5-n} to go…`;
+    link.setAttribute('aria-disabled','true');
   }
 }
-boot();
+function renderHints(level){
+  const L = HINTS[level] || HINTS.subtle;
+  for(let i=1;i<=5;i++){ hintEls[i-1].textContent = L[i]; }
+}
 </script>
 </body>
 </html>
