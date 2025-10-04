@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Curse of Atchison · Round 2</title>
+<meta name="theme-color" content="#111017">
+<style>
+  :root{ --bg:#0c0a12; --card:#141022; --ink:#f0e6ff; --muted:#c9c0e6; --ok:#95f5c9; --no:#ff6b6b; --accent:#a487ff; }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0; background:radial-gradient(900px 600px at 70% -10%, #201a39 0%, #0c0a12 50%, #08070e 100%); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.55;}
+  header{padding:16px; border-bottom:1px solid #2b2441; position:sticky; top:0; background:#0f0c18cc; backdrop-filter:blur(8px)}
+  .wrap{max-width:880px; margin:0 auto; padding:0 12px}
+  h1{margin:0; font-size:22px}
+  .card{background:var(--card); border:1px solid #2a2243; border-radius:14px; padding:14px; margin:14px 0}
+  .btn{display:inline-block; padding:10px 14px; border-radius:12px; border:1px solid #3d3264; background:linear-gradient(180deg,#1a1430,#120d22); color:#fff; font-weight:700; cursor:pointer}
+  .btn[disabled]{opacity:.45; cursor:not-allowed}
+  .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .small{font-size:12px; color:#bfc6e6}
+  dialog{ border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:640px; width:calc(100% - 28px);
+          padding:0; box-shadow: 0 40px 120px #000f, inset 0 0 0 1px #2d2450; }
+  dialog::backdrop{background:#0009}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #2d2450; background:#1a1530}
+  .modal-body{padding:16px; color:var(--muted)}
+  .x{background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer}
+  #scanVideo{width:100%;border-radius:12px;background:#000;max-height:60vh}
+  /* Jump scares */
+  #scare, #scareBad { position:fixed; inset:0; background:#000; display:none; z-index:9999; align-items:center; justify-content:center; }
+  #scare .flash, #scareBad .flash { position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, #ffffff, #ffd2d2 40%, #000 70%); opacity:0; }
+  #scare .face, #scareBad .face { width:min(90vw,700px); height:auto; opacity:0; filter:drop-shadow(0 0 20px #000);
+    background-repeat:no-repeat; background-position:center; background-size:contain; }
+  #scare .face{ background-image:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700"><rect width="700" height="700" fill="black"/><g fill="white"><ellipse cx="240" cy="260" rx="70" ry="95"/><ellipse cx="460" cy="260" rx="70" ry="95"/><path d="M210 480 Q350 620 490 480 Q350 520 210 480 Z" /></g><g fill="black"><ellipse cx="240" cy="270" rx="28" ry="38"/><ellipse cx="460" cy="270" rx="28" ry="38"/></g></svg>'); }
+  #scareBad .face{ background-image:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700"><rect width="700" height="700" fill="black"/><g fill="red"><ellipse cx="240" cy="260" rx="80" ry="110"/><ellipse cx="460" cy="260" rx="80" ry="110"/><path d="M140 520 Q350 420 560 520 Q350 580 140 520 Z" /></g><g fill="black"><ellipse cx="240" cy="270" rx="20" ry="30"/><ellipse cx="460" cy="270" rx="20" ry="30"/></g></svg>'); }
+  .scare-in .flash{animation: flash 0.25s ease forwards} .scare-in .face{animation: popIn 0.28s ease forwards 0.05s}
+  @keyframes popIn { from { transform:scale(0.65); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0.2} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Round 2 · Solo Hunt</h1>
+    <div class="small">Find every posted QR within <b>30 minutes</b>. Each scan reveals a message and fate: <b>+2</b>, <b>−1</b>, or <b>DOOM</b>. You may trade <b>once</b>.</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <div class="row">
+      <button id="startBtn" class="btn">Start My 30-Minute Run</button>
+      <div><b>Timer:</b> <span id="timer">Not started</span></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div>Codename: <input id="name" placeholder="e.g., LanternFox" style="padding:8px;border-radius:10px;border:1px solid #3a315d;background:#0f0c18;color:#f0e6ff"> <button id="saveName" class="btn">Save</button></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Scan or Enter Token</h3>
+    <div class="row">
+      <button id="scanBtn" class="btn">Scan with Camera</button>
+      <button id="enterBtn" class="btn">Enter Token</button>
+      <a href="index.html" class="btn" style="margin-left:auto">← Round 1</a>
+    </div>
+    <p class="small" style="margin-top:6px">If scanning fails on your device, use <b>Enter Token</b>.</p>
+    <div class="small" id="foundStat" style="margin-top:6px">Found: 0 / 12 · Coins: 0 · Trade used: No</div>
+  </section>
+
+  <section class="card">
+    <h3>One Trade</h3>
+    <p class="small">Once per run, agree with someone to <i>give</i> or <i>receive</i> 1 coin (honor system).</p>
+    <button id="tradeBtn" class="btn">Use My Trade</button>
+  </section>
+
+  <section class="card" id="ritualCard" style="display:none">
+    <h3>Final Ritual</h3>
+    <p class="small">You won your run. Read together:</p>
+    <blockquote style="margin:8px 0; opacity:.9"><em>“Lantern rekindled, river released; song restored, and judgment ceased. From ridge to square, let grudges part—return what’s owed and mend the heart.”</em></blockquote>
+    <button id="liftBtn" class="btn">Lift the Curse</button>
+  </section>
+</main>
+
+<!-- Camera Scanner Modal -->
+<dialog id="scanDlg">
+  <div class="modal-head">
+    <strong>Scan QR</strong>
+    <button class="x" data-close="scanDlg" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <div class="small" id="scanStatus" style="margin-bottom:8px">Initializing camera…</div>
+    <video id="scanVideo" playsinline></video>
+    <div class="row" style="margin-top:10px"><button id="scanStop" class="btn">Stop</button></div>
+  </div>
+</dialog>
+
+<!-- Message Modal -->
+<dialog id="msg">
+  <div class="modal-head">
+    <strong id="msgTitle">Message</strong>
+    <button class="x" data-close="msg" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body" id="msgBody"></div>
+</dialog>
+
+<!-- Jump Scares -->
+<div id="scare" aria-hidden="true"><div class="flash"></div><div class="face"></div></div>
+<div id="scareBad" aria-hidden="true"><div class="flash"></div><div class="face"></div></div>
+
+<!-- ZXing (cross-browser QR) -->
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0"></script>
+
+<script>
+/* ===== Shared state helpers ===== */
+function S(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
+function W(v){ localStorage.setItem('willow_qr', JSON.stringify(v)); }
+
+/* ===== Settings ===== */
+const TIME_LIMIT_MIN=30;
+const FATE={ gain:0.55, lose:0.30, doom:0.15 };
+const COIN_CHANGE={ gain:+2, lose:-1 };
+const QR_TOKENS={
+  'HBTRQJ':'Saloon','GF5CBF':'Hotel','PQBN4Q':'Jail','6TAL5X':'Blacksmith',
+  'TKPXGF':'Church','2GYYSC':'Water Tower','7H2FUZ':'Train Tracks','NECQUF':'General Store',
+  'QG2T7Z':'Undertaker','LZYPTE':'Schoolhouse','LRL72T':'Barn','QWDQCW':'Windmill'
+};
+const MSGS_WILLOW=["“You blamed me for the dark—yet you dug the tunnel.”","“Set down your fear and the dust will settle.”","“Truth is a lantern: it burns, but it shows the way.”","“Trade kindly; Atchison remembers debts.”"];
+const MSGS_DEAD=["The canary fell silent… and so did we.","We drown in dust, not water.","Our bones line the riverbed of your choices.","We whisper: let blame go, or be buried with it."];
+
+/* ===== UI refs ===== */
+const startBtn=document.getElementById('startBtn');
+const timerEl=document.getElementById('timer');
+const nameInp=document.getElementById('name');
+const saveName=document.getElementById('saveName');
+const scanBtn=document.getElementById('scanBtn');
+const enterBtn=document.getElementById('enterBtn');
+const tradeBtn=document.getElementById('tradeBtn');
+const foundStat=document.getElementById('foundStat');
+const ritualCard=document.getElementById('ritualCard');
+const liftBtn=document.getElementById('liftBtn');
+
+const msgDlg=document.getElementById('msg');
+const msgTitle=document.getElementById('msgTitle');
+const msgBody=document.getElementById('msgBody');
+
+const scanDlg=document.getElementById('scanDlg');
+const scanVideo=document.getElementById('scanVideo');
+const scanStatus=document.getElementById('scanStatus');
+const scanStop=document.getElementById('scanStop');
+
+let tick=null, stream=null;
+
+/* ===== Boot ===== */
+(function boot(){
+  // Ensure Round 1 done? (optional soft gate)
+  const s=S(); const done=[1,2,3,4,5].every(i=>s['s'+i]);
+  if(!done){ /* still allow access */ }
+  document.addEventListener('click', (e)=>{
+    const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); }
+  });
+  saveName.onclick=()=>{ const s=S(); const n=(nameInp.value||'').trim(); if(!n) return alert('Pick a codename first.'); s.name=n; W(s); alert('Saved.'); };
+  startBtn.onclick=startRun;
+  scanBtn.onclick=openScanner;
+  enterBtn.onclick=manualToken;
+  tradeBtn.onclick=useTrade;
+  liftBtn.onclick=winRitual;
+
+  // Restore UI
+  if(s.name) nameInp.value=s.name;
+  if(s.r2){
+    updateFoundUI();
+    if(s.r2.startedAt && !s.r2.over) startTicker();
+  }
+  // Handle ?token via external scanner
+  const p=new URLSearchParams(location.search); const t=p.get('token')||p.get('claimToken');
+  if(t) setTimeout(()=>resolveToken(t), 400);
+})();
+
+/* ===== Round control ===== */
+function startRun(){
+  const s=S();
+  if(s.r2 && s.r2.startedAt && !s.r2.over) return alert('Your run is already in progress!');
+  const now=Date.now();
+  s.r2={startedAt:now, endsAt:now+TIME_LIMIT_MIN*60000, points:0, found:{}, tradeUsed:false, doom:false, over:false, win:false};
+  W(s); updateFoundUI(); startTicker(); alert('The lantern burns. Your hunt begins!');
+}
+function startTicker(){
+  if(tick) clearInterval(tick);
+  tick=setInterval(()=>{
+    const s=S(); if(!s.r2 || s.r2.over){ clearInterval(tick); return; }
+    const remain=s.r2.endsAt-Date.now();
+    if(remain<=0){ s.r2.over=true; W(s); checkOutcome(); clearInterval(tick); return; }
+    const m=Math.floor(remain/60000), sec=Math.floor((remain%60000)/1000);
+    timerEl.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  },1000);
+}
+function updateFoundUI(){
+  const s=S();
+  const found = Object.keys(s?.r2?.found||{}).length;
+  const coins = s?.r2?.points||0;
+  const tradeUsed = s?.r2?.tradeUsed ? 'Yes' : 'No';
+  foundStat.textContent = `Found: ${found} / ${Object.keys(QR_TOKENS).length} · Coins: ${coins} · Trade used: ${tradeUsed}`;
+}
+
+/* ===== Fate + messages ===== */
+function rollFate(){
+  const r=Math.random();
+  if(r < FATE.gain) return 'gain';
+  if(r < FATE.gain + FATE.lose) return 'lose';
+  return 'doom';
+}
+function showMsg(title, html){
+  msgTitle.textContent=title; msgBody.innerHTML=html; msgDlg.showModal();
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ===== Token handling ===== */
+function resolveToken(raw){
+  const t=String(raw||'').trim().toUpperCase();
+  const label = QR_TOKENS[t]; if(!label) return alert('That token is not recognized.');
+  const s=S();
+  if(!s.r2 || !s.r2.startedAt || s.r2.over) return alert('Start your 30-minute run first.');
+  if(s.r2.doom) return alert('Your fate is sealed. The curse follows you.');
+  if(s.r2.found && s.r2.found[t]) return alert('You already claimed this sigil.');
+
+  const fate = rollFate();
+  s.r2.found[t]=fate;
+
+  if(fate==='gain'){ s.r2.points=(s.r2.points||0)+COIN_CHANGE.gain; showMsg('Willow Speaks', pick(MSGS_WILLOW)+`<br><br><b>Fate:</b> +${COIN_CHANGE.gain} coins`); }
+  if(fate==='lose'){ s.r2.points=Math.max(0,(s.r2.points||0)+COIN_CHANGE.lose); showMsg('A Voice from the Shaft', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> ${COIN_CHANGE.lose} coin`); }
+  if(fate==='doom'){ s.r2.doom=true; s.r2.over=true; W(s); updateFoundUI(); return loseFlow('A Cold Hand', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> <span style="color:#ff6b6b">DOOM</span>`); }
+
+  W(s); updateFoundUI();
+
+  if(Object.keys(s.r2.found).length === Object.keys(QR_TOKENS).length){
+    s.r2.over=true; s.r2.win=true; W(s); winFlow();
+  }
+}
+function manualToken(){
+  const t=prompt('Enter the token printed on the QR sticker:');
+  if(t) resolveToken(t);
+}
+
+/* ===== Trade (once) ===== */
+function useTrade(){
+  const s=S();
+  if(!s.r2 || s.r2.over || s.r2.doom) return alert('You need an active run.');
+  if(s.r2.tradeUsed) return alert('Trade already used this run.');
+  const dir = prompt('Type "give" to give 1 coin, or "receive" to take 1 coin.').toLowerCase();
+  if(dir!=='give' && dir!=='receive') return;
+  if(dir==='give') s.r2.points=Math.max(0,(s.r2.points||0)-1);
+  if(dir==='receive') s.r2.points=(s.r2.points||0)+1;
+  s.r2.tradeUsed=true; W(s); updateFoundUI(); alert('Trade complete.');
+}
+
+/* ===== Outcome flows ===== */
+async function winFlow(){
+  ritualCard.style.display='block';
+  await jumpScare(true);
+}
+async function loseFlow(title, html){
+  showMsg(title, html); await jumpScare(false);
+  alert('☠️ You lost your run. Try again later… the curse lingers.');
+}
+function checkOutcome(){
+  const s=S();
+  if(s.r2.doom) return loseFlow('Your Footsteps Echo', 'The lantern goes dark. The curse finds your doorstep.');
+  if(Object.keys(s?.r2?.found||{}).length !== Object.keys(QR_TOKENS).length) return loseFlow('Too Late','Midnight passes; the gulch exhales. The curse follows you home.');
+  winFlow();
+}
+
+/* ===== Jump scares ===== */
+function jumpScare(good){ return new Promise(res=>{
+  const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
+  el.style.display='flex'; el.classList.add('scare-in');
+  // simple audio sweep
+  try{
+    const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
+    const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(good?400:120, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(good?40:20, ctx.currentTime+(good?0.4:0.9));
+    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime+0.08); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+(good?0.9:1.4));
+    osc.connect(g); g.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime+(good?0.9:1.4));
+  }catch(e){}
+  setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
+});}
+function winRitual(){ alert('✨ The curse lifts! Show this to the host for your reward.'); }
+
+/* ===== Scanner (ZXing) ===== */
+async function openScanner(){
+  if(!navigator.mediaDevices?.getUserMedia){ alert('Camera not available. Use Enter Token.'); return; }
+  if(scanDlg && scanDlg.showModal) scanDlg.showModal();
+  scanStatus.textContent='Requesting camera…';
+
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+    scanVideo.srcObject=stream; await scanVideo.play();
+    scanStatus.textContent='Scanning…';
+    const reader = new ZXing.BrowserQRCodeReader();
+    const result = await reader.decodeOnceFromVideoElement(scanVideo);
+    stopScanner();
+    const raw=result.text.trim();
+    let token='';
+    try{ const u=new URL(raw); token=u.searchParams.get('token')||u.searchParams.get('claimToken')||''; }catch{ token=raw; }
+    if(token) resolveToken(token);
+  }catch(err){
+    console.error(err);
+    scanStatus.textContent='Camera access denied or scanner unavailable.';
+  }
+}
+function stopScanner(){
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  if(scanDlg?.open) scanDlg.close();
+}
+scanStop.addEventListener('click', stopScanner);
+document.addEventListener('click', e=>{ if(e.target.closest('[data-close="scanDlg"]')) stopScanner(); });
+</script>
+</body>
+</html>
