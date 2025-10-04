@@ -30,6 +30,9 @@
   .result{margin-top:4px; font-weight:700}
   .ok{color:var(--ok)} .no{color:var(--no)}
   .hint{color:var(--hint); font-size:12px; opacity:.9; margin-top:6px}
+  .letter{background:#0e1520; border:1px dashed #3a4455; border-radius:12px; padding:12px; margin:10px 0}
+  .letter p{margin:.35em 0}
+  .drop{color:#9ef0c9; font-weight:700}
   footer{position:sticky; bottom:0; border-top:1px solid #2b2441; background:#0f0c18cc; backdrop-filter:blur(8px)}
   .foot{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px}
   .cta{padding:12px 16px; border-radius:12px; border:1px solid #3d3264; background:linear-gradient(180deg,#241a45,#191236); color:#fff; font-weight:800}
@@ -59,9 +62,7 @@
     </div>
   </div>
 </header>
-.letter{background:#0e1520; border:1px dashed #3a4455; border-radius:12px; padding:12px; margin:10px 0}
-.letter p{margin:.35em 0}
-.drop{color:#9ef0c9; font-weight:700}
+
 <main class="wrap">
   <p>Read the fragments, solve the riddles, mint <b>5 coins</b>, then proceed to the solo hunt.</p>
 
@@ -108,28 +109,35 @@
     </section>
 
     <section class="card">
-  <div class="tag">5 · Town Square</div>
-  <h3>The Accusation</h3>
+      <div class="tag">5 · Town Square</div>
+      <h3>The Accusation</h3>
 
-  <!-- ACROSTIC POEM (visible again) -->
-  <div class="letter">
-    <strong>Willow’s Poem (Acrostic)</strong>
-    <div class="content">
-      <p><span class="drop">T</span>he hills remember what the town forgot.</p>
-      <p><span class="drop">R</span>estore the lantern; let blame burn out.</p>
-      <p><span class="drop">U</span>ndo the oath of anger with a single word.</p>
-      <p><span class="drop">C</span>ease your shouting; let silence mend.</p>
-      <p><span class="drop">E</span>nd what began in fear—begin again in truth.</p>
-    </div>
-  </div>
+      <div class="letter">
+        <strong>Willow’s Poem (Acrostic)</strong>
+        <div class="content">
+          <p><span class="drop">T</span>he hills remember what the town forgot.</p>
+          <p><span class="drop">R</span>estore the lantern; let blame burn out.</p>
+          <p><span class="drop">U</span>ndo the oath of anger with a single word.</p>
+          <p><span class="drop">C</span>ease your shouting; let silence mend.</p>
+          <p><span class="drop">E</span>nd what began in fear—begin again in truth.</p>
+        </div>
+      </div>
 
-  <div class="riddle">
-    <p><b>Question:</b> Read the acrostic — enter the single word that ends the curse.</p>
-    <input id="a5" placeholder="Your answer…"><button data-i="5" class="btn">Submit</button>
-    <div id="r5" class="result"></div>
-    <div id="h5" class="hint"></div>
+      <div class="riddle">
+        <p><b>Question:</b> Read the acrostic — enter the single word that ends the curse.</p>
+        <input id="a5" placeholder="Your answer…"><button data-i="5" class="btn">Submit</button>
+        <div id="r5" class="result"></div><div id="h5" class="hint"></div>
+      </div>
+    </section>
   </div>
-</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span id="status">Solve all 5 to continue.</span>
+    <a id="toRound2" class="cta" href="round2.html" aria-disabled="true">Begin Round 2</a>
+  </div>
+</footer>
 
 <script>
 const ANSWERS={1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
@@ -138,7 +146,6 @@ const HINTS={
   subtle:{1:'Lanterns are its cradle; rain is its grave.',2:'A tiny singer in a cage.',3:'Its bed is not for sleeping.',4:'A three-letter unit.',5:'Take the first letter of each line.'},
   direct:{1:'It needs air and fuel, not water.',2:'Miners carried it to warn of gas.',3:'It has banks, a mouth, and a current.',4:'Forward it weighs; backward it is not.',5:'The acrostic spells a single word.'}
 };
-
 const coins=[...Array(5)].map((_,i)=>document.getElementById('c'+(i+1)));
 const resIds=[1,2,3,4,5].map(i=>document.getElementById('r'+i));
 const inputs=[1,2,3,4,5].map(i=>document.getElementById('a'+i));
@@ -154,7 +161,7 @@ function W(v){localStorage.setItem('willow_qr',JSON.stringify(v));}
 
 (function boot(){
   const s=S();
-  const level=s.hintLevel||'off';      // default OFF
+  const level=s.hintLevel||'off'; // default OFF
   hintLevelSel.value=level; renderHints(level);
   for(let i=1;i<=5;i++){if(s['s'+i]) coins[i-1].classList.add('got');}
   document.querySelectorAll('.riddle .btn').forEach(btn=>btn.addEventListener('click',()=>check(+btn.dataset.i)));
