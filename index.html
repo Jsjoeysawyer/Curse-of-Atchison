@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wicked Willow • Curse of Atchison (Solo Round 2)</title>
+<title>Wicked Willow • Curse of Atchison (Solo)</title>
 <meta name="theme-color" content="#111017">
 <style>
   :root{ --bg:#0c0a12; --panel:#131022; --ink:#f0e6ff; --muted:#c8b8ffb3; --accent:#9ef0c9; --danger:#ff6b6b; --coin:#f6c945; --glow:#52ffb380; }
@@ -55,6 +55,7 @@
   .ritual .status{font-weight:800; letter-spacing:.3px}
   #spellPane{display:none} #spellPane.open{display:block}
   .ritual .spell{background:#0f1522; border:1px solid #344; border-radius:12px; padding:12px; color:#cfe9e0;}
+
   dialog{ border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:640px; width:calc(100% - 28px);
           padding:0; box-shadow: 0 40px 120px #000f, inset 0 0 0 1px #2d2450; }
   dialog::backdrop{background:#0009}
@@ -180,16 +181,16 @@
           <p class="small">In person: agree with someone to <i>give</i> or <i>receive</i> 1 coin. This can be used only once per run.</p>
         </div></div>
 
-        <div class="letter"><strong>Manual Token Entry</strong><div class="content">
-          <p>If your camera can’t scan, type the printed token from the QR sticker:</p>
-          <p><button id="qrClaimBtn" class="pill">Enter Token</button></p>
+        <div class="letter"><strong>Scan or Enter Token</strong><div class="content">
+          <p><button id="scanBtn" class="pill">Scan with Camera</button> <button id="qrClaimBtn" class="pill">Enter Token</button></p>
+          <p class="small" style="opacity:.8">If scanning fails on your device, use <b>Enter Token</b>.</p>
         </div></div>
       </div>
     </section>
   </div>
 </main>
 
-<!-- Ritual/Outcome (auto) -->
+<!-- Ritual / Outcomes -->
 <footer class="footer">
   <div class="wrap ritual" id="ritual">
     <div>
@@ -225,13 +226,32 @@
   </div>
 </dialog>
 
-<!-- Messages from the Dead / Willow -->
+<!-- Messages -->
 <dialog id="msg">
   <div class="modal-head">
     <strong id="msgTitle">Message</strong>
     <button class="x" data-close="msg" aria-label="Close">Close</button>
   </div>
   <div class="modal-body" id="msgBody"></div>
+</dialog>
+
+<!-- Camera Scanner -->
+<dialog id="scanDlg">
+  <div class="modal-head">
+    <strong>Scan QR</strong>
+    <button class="x" data-close="scanDlg" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <div class="small" id="scanStatus" style="margin-bottom:8px">Initializing camera…</div>
+    <video id="scanVideo" playsinline style="width:100%;border-radius:12px;background:#000;max-height:60vh"></video>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button id="scanTorch" class="pill">Toggle Torch</button>
+      <button id="scanStop" class="pill">Stop</button>
+    </div>
+    <div class="small" style="opacity:.8;margin-top:8px">
+      If scanning fails on your device, close this and use <b>Enter Token</b>.
+    </div>
+  </div>
 </dialog>
 
 <script>
@@ -244,14 +264,15 @@ const ritualStatus=document.getElementById('ritualStatus');
 const spellPane=document.getElementById('spellPane');
 const scare=document.getElementById('scare');
 const scareBad=document.getElementById('scareBad');
+
 const ids=['a1','a2','a3','a4','a5'], rs=['r1','r2','r3','r4','r5'], hs=['h1','h2','h3','h4','h5'];
 const inputs=ids.map(id=>document.getElementById(id));
 const results=rs.map(id=>document.getElementById(id));
 const hints=hs.map(id=>document.getElementById(id));
+
 document.getElementById('hintToggle').onclick=()=>toggleHints();
 document.getElementById('reset').onclick=()=>{ if(confirm('Reset ALL progress?')){ localStorage.clear(); location.reload(); } };
 
-// Close any dialog with data-close
 document.addEventListener('click', (e)=>{
   const btn=e.target.closest('[data-close]');
   if(btn){
@@ -274,13 +295,10 @@ function initLvl1(){
     btn.onclick=()=>check(idx+1);
     inputs[idx].addEventListener('keydown',e=>{ if(e.key==='Enter') check(idx+1); });
   });
-
   castBtn.onclick=()=>{ if(!castBtn.disabled){ openRitual(); } };
-
   document.getElementById('lift').onclick=async()=>{
     await jumpScareWin();
-    const dlg=document.getElementById('prize');
-    if(dlg && dlg.showModal) dlg.showModal();
+    const dlg=document.getElementById('prize'); if(dlg && dlg.showModal) dlg.showModal();
     confetti();
   };
 }
@@ -294,8 +312,6 @@ function award(i,animate){
   coins[i-1].classList.add('got');
   if(animate) coins[i-1].animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:550});
 }
-
-// Unlock Solo Round 2 once 5 coins are minted
 function updateProgress(){
   const s=getState(); const count=[1,2,3,4,5].filter(k=>s['s'+k]).length; bar.style.width=(count/5*100)+'%';
   if(count===5){
@@ -317,16 +333,15 @@ function toggleHints(){ const on=document.getElementById('hintToggle').getAttrib
 }
 
 /* ====== Jump scares + confetti ====== */
-function jumpScareWin(){ return new Promise(res=>{ scare.style.display='flex'; scare.classList.add('scare-in');
-  sfx(380,40,0.9); setTimeout(()=>{ scare.style.display='none'; scare.classList.remove('scare-in'); res(); }, 1200); }); }
-function jumpScareCurse(){ return new Promise(res=>{ scareBad.style.display='flex'; scareBad.classList.add('scare-in');
-  sfx(120,20,1.4,true); setTimeout(()=>{ scareBad.style.display='none'; scareBad.classList.remove('scare-in'); res(); }, 1600); }); }
+function jumpScareWin(){ return new Promise(res=>{ scare.style.display='flex'; scare.classList.add('scare-in'); sfx(380,40,0.9); setTimeout(()=>{ scare.style.display='none'; scare.classList.remove('scare-in'); res(); }, 1200); }); }
+function jumpScareCurse(){ return new Promise(res=>{ scareBad.style.display='flex'; scareBad.classList.add('scare-in'); sfx(120,20,1.4,true); setTimeout(()=>{ scareBad.style.display='none'; scareBad.classList.remove('scare-in'); res(); }, 1600); }); }
 function sfx(startHz, endHz, dur, noise=false){
   try{ const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
     const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(startHz, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(endHz, ctx.currentTime+0.4);
     const g=ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime+0.08); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+dur);
-    osc.connect(g); g.connect(ctx.destination); if(noise){ const n=ctx.createBuffer(1, 2*ctx.sampleRate, ctx.sampleRate); const ch=n.getChannelData(0); for(let i=0;i<ch.length;i++){ ch[i]=(Math.random()*2-1)*(1-i/ch.length); } const ns=ctx.createBufferSource(); ns.buffer=n; ns.connect(g); ns.start(); ns.stop(ctx.currentTime+dur); }
+    osc.connect(g); g.connect(ctx.destination);
+    if(noise){ const n=ctx.createBuffer(1, 2*ctx.sampleRate, ctx.sampleRate); const ch=n.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i]=(Math.random()*2-1)*(1-i/ch.length); const ns=ctx.createBufferSource(); ns.buffer=n; ns.connect(g); ns.start(); ns.stop(ctx.currentTime+dur); }
     osc.start(); osc.stop(ctx.currentTime+dur);
   }catch(e){}
 }
@@ -338,13 +353,14 @@ function confetti(){ const n=120, frag=document.createDocumentFragment();
       {duration: dur,easing:'cubic-bezier(.2,.7,.2,1)',fill:'forwards'}).onfinish=()=>d.remove();
   } document.body.appendChild(frag); }
 
-/* ====== SOLO ROUND 2 (all on-device) ====== */
-/* SETTINGS — tweak these if you like */
-const TIME_LIMIT_MIN = 30;               // minutes per solo run
+/* ====== SOLO ROUND 2 ====== */
+/* SETTINGS — tweak if you like */
+const TIME_LIMIT_MIN = 30;                 // minutes per solo run
 const FATE = { gain:0.55, lose:0.30, doom:0.15 }; // odds per scan
 const COIN_CHANGE = { gain:+2, lose:-1 };          // coin deltas
-// Tokens for all your posted QR codes (EDIT to match your set)
+// Tokens for your posted QR codes (EDIT these to match your printed stickers)
 const QR_TOKENS = {
+  // Example set — replace with yours (token:"Label")
   'HBTRQJ':'Saloon','GF5CBF':'Hotel','PQBN4Q':'Jail','6TAL5X':'Blacksmith',
   'TKPXGF':'Church','2GYYSC':'Water Tower','7H2FUZ':'Train Tracks','NECQUF':'General Store',
   'QG2T7Z':'Undertaker','LZYPTE':'Schoolhouse','LRL72T':'Barn','QWDQCW':'Windmill'
@@ -391,17 +407,27 @@ function initSolo(){
   els.startSolo.onclick=startRun;
   els.qrBtn.onclick=manualToken;
   els.useTrade.onclick=doTrade;
-  // Auto-handle ?token on load
+
+  // Auto-handle ?token on load (scan via external camera app)
   const p=new URLSearchParams(window.location.search);
   const t=p.get('token')||p.get('claimToken');
   if(t){ setTimeout(()=>resolveToken(t), 400); }
+
   // Restore state UI
   const s=getState();
-  if(s.r2){ els.points.textContent=s.r2.points||0; els.foundCount.textContent = Object.keys(s.r2.found||{}).length; els.tradeUsed.textContent = s.r2.tradeUsed?'Yes':'No'; updateTimerLabel(); }
+  if(s.r2){
+    els.points.textContent=s.r2.points||0;
+    els.foundCount.textContent = Object.keys(s.r2.found||{}).length;
+    els.tradeUsed.textContent = s.r2.tradeUsed?'Yes':'No';
+    updateTimerLabel();
+    if(s.r2.startedAt && !s.r2.over) tickTimer();
+  }
+
+  // Wire camera scanner
+  initScanner();
 }
 function startRun(){
   const s=getState();
-  // if already running, do nothing
   if(s.r2 && s.r2.startedAt && !s.r2.over){
     return alert('Your run is already in progress. Good luck!');
   }
@@ -420,7 +446,7 @@ function doTrade(){
   const s=getState();
   if(!s.r2 || s.r2.over || s.r2.doom) return alert('You must be in an active run to trade.');
   if(s.r2.tradeUsed) return alert('Trade already used this run.');
-  const dir=prompt('Type "give" to give 1 coin, or "receive" to take 1 coin from a partner (honor system).').toLowerCase();
+  const dir=prompt('Type "give" to give 1 coin, or "receive" to take 1 coin from a partner (honor system).')?.toLowerCase();
   if(dir!=='give' && dir!=='receive') return;
   if(dir==='give') s.r2.points=Math.max(0,(s.r2.points||0)-1);
   if(dir==='receive') s.r2.points=(s.r2.points||0)+1;
@@ -444,7 +470,6 @@ function tickTimer(){
     if(!s.r2 || s.r2.over) return clearInterval(soloClock);
     const now=Date.now();
     if(now >= s.r2.endsAt){
-      // Time’s up
       s.r2.over=true; setState(s);
       checkOutcome();
       clearInterval(soloClock);
@@ -454,7 +479,7 @@ function tickTimer(){
 }
 
 function resolveToken(raw){
-  const t=(raw||'').trim().toUpperCase();
+  const t=(String(raw||'')).trim().toUpperCase();
   const label = QR_TOKENS[t];
   if(!label){ alert('That token is not recognized.'); return; }
   const s=getState();
@@ -466,6 +491,7 @@ function resolveToken(raw){
   const fate = rollFate();
   s.r2.found = s.r2.found || {};
   s.r2.found[t] = fate;
+
   if(fate==='gain'){ s.r2.points=(s.r2.points||0)+COIN_CHANGE.gain; showMsg('Willow Speaks', pick(MSGS_WILLOW) + `<br><br><b>Fate:</b> +${COIN_CHANGE.gain} coins`); }
   if(fate==='lose'){ s.r2.points=Math.max(0,(s.r2.points||0)+COIN_CHANGE.lose); showMsg('A Voice from the Shaft', pick(MSGS_DEAD) + `<br><br><b>Fate:</b> ${COIN_CHANGE.lose} coin`); }
   if(fate==='doom'){ s.r2.doom=true; s.r2.over=true; setState(s); els.foundCount.textContent = Object.keys(s.r2.found).length; loseFlow('A Cold Hand', pick(MSGS_DEAD) + "<br><br><b>Fate:</b> <span style='color:#ff6b6b'>DOOM</span>"); return; }
@@ -474,7 +500,7 @@ function resolveToken(raw){
   els.points.textContent=s.r2.points;
   els.foundCount.textContent = Object.keys(s.r2.found).length;
 
-  // If all found within time and not doomed -> WIN
+  // Found all before time, not doomed => WIN
   if(Object.keys(s.r2.found).length === Object.keys(QR_TOKENS).length){
     s.r2.over=true; s.r2.win=true; setState(s); winFlow();
   }
@@ -494,10 +520,8 @@ function showMsg(title, html){
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 function checkOutcome(){
-  const s=getState();
-  if(!s.r2) return;
+  const s=getState(); if(!s.r2) return;
   if(s.r2.doom){ loseFlow('Your Footsteps Echo', 'The lantern goes dark. The curse finds your doorstep.'); return; }
-  // time up without collecting all => lose
   if(Object.keys(s.r2.found||{}).length !== Object.keys(QR_TOKENS).length){
     loseFlow('Too Late', 'Midnight passes; the gulch exhales. The curse follows you home.');
   }else{
@@ -505,10 +529,8 @@ function checkOutcome(){
   }
 }
 async function winFlow(){
-  // Unlock ritual button
   castBtn.disabled=false; openRitual();
-  await jumpScareWin();
-  confetti();
+  await jumpScareWin(); confetti();
 }
 async function loseFlow(title, html){
   showMsg(title, html);
@@ -516,10 +538,81 @@ async function loseFlow(title, html){
   alert('☠️ You lost your run. Try again later… the curse lingers.');
 }
 
+/* ====== Camera QR Scanner (BarcodeDetector) ====== */
+const scanDlg   = document.getElementById('scanDlg');
+const scanVideo = document.getElementById('scanVideo');
+const scanStatus= document.getElementById('scanStatus');
+const scanTorch = document.getElementById('scanTorch');
+const scanStop  = document.getElementById('scanStop');
+const scanBtn   = document.getElementById('scanBtn');
+
+let scanStream = null, scanLoopId = null, barcodeDetector = null, torchOn = false, torchTrack = null;
+
+function initScanner(){
+  if(!scanBtn) return;
+  scanBtn.addEventListener('click', async ()=>{
+    if(!('BarcodeDetector' in window)){
+      alert('This browser does not support camera scanning. Use Enter Token instead.');
+      return;
+    }
+    try{
+      const formats = ['qr_code','aztec','data_matrix','pdf417'];
+      barcodeDetector = new window.BarcodeDetector({formats});
+    }catch(e){
+      barcodeDetector = new window.BarcodeDetector();
+    }
+    if(scanDlg && scanDlg.showModal) scanDlg.showModal();
+    scanStatus.textContent='Requesting camera…';
+    try{
+      scanStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720}}, audio:false });
+      scanVideo.srcObject = scanStream; await scanVideo.play();
+      scanStatus.textContent='Point camera at a QR code.';
+      torchTrack = (scanStream.getVideoTracks && scanStream.getVideoTracks()[0]) || null;
+      if(!torchTrack || !torchTrack.getCapabilities || !torchTrack.getCapabilities().torch){ scanTorch.disabled=true; } else { scanTorch.disabled=false; }
+      startScanLoop();
+    }catch(err){ scanStatus.textContent='Camera permission denied or unavailable.'; }
+  });
+  scanTorch?.addEventListener('click', async ()=>{
+    if(!torchTrack || !torchTrack.applyConstraints) return;
+    try{ torchOn = !torchOn; await torchTrack.applyConstraints({ advanced:[{torch:torchOn}] }); }catch(e){ scanTorch.disabled=true; }
+  });
+  scanStop?.addEventListener('click', stopScanner);
+  document.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-close="scanDlg"]'); if(btn) stopScanner(); });
+}
+function startScanLoop(){
+  const tick = async ()=>{
+    if(!barcodeDetector || scanVideo.readyState < 2){ scanLoopId = requestAnimationFrame(tick); return; }
+    try{
+      const codes = await barcodeDetector.detect(scanVideo);
+      if(codes && codes.length){
+        const raw = (codes[0].rawValue || '').trim();
+        let token = '';
+        try{ const u=new URL(raw); token = u.searchParams.get('token') || u.searchParams.get('claimToken') || ''; }
+        catch{ token = raw; }
+        token = (token || raw || '').trim();
+        if(token){
+          stopScanner();
+          setTimeout(()=>resolveToken(token), 150);
+          return;
+        }
+      }
+    }catch(e){}
+    scanLoopId = requestAnimationFrame(tick);
+  };
+  scanLoopId = requestAnimationFrame(tick);
+}
+function stopScanner(){
+  if(scanLoopId){ cancelAnimationFrame(scanLoopId); scanLoopId=null; }
+  try{
+    if(torchTrack && torchOn){ torchTrack.applyConstraints({ advanced:[{torch:false}] }).catch(()=>{}); torchOn=false; }
+  }catch(e){}
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  if(scanDlg && scanDlg.open) scanDlg.close();
+}
+
 /* ====== Boot ====== */
 (function boot(){
   ensureId();
-  const s=getState();
   initLvl1();
   initSolo();
 })();
