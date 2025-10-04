@@ -59,7 +59,9 @@
     </div>
   </div>
 </header>
-
+.letter{background:#0e1520; border:1px dashed #3a4455; border-radius:12px; padding:12px; margin:10px 0}
+.letter p{margin:.35em 0}
+.drop{color:#9ef0c9; font-weight:700}
 <main class="wrap">
   <p>Read the fragments, solve the riddles, mint <b>5 coins</b>, then proceed to the solo hunt.</p>
 
@@ -106,23 +108,28 @@
     </section>
 
     <section class="card">
-      <div class="tag">5 · Town Square</div>
-      <h3>The Accusation</h3>
-      <div class="riddle">
-        <p><b>Question:</b> Read the acrostic TRUCE — enter the single word that ends the curse.</p>
-        <input id="a5" placeholder="Your answer…"><button data-i="5" class="btn">Submit</button>
-        <div id="r5" class="result"></div><div id="h5" class="hint"></div>
-      </div>
-    </section>
-  </div>
-</main>
+  <div class="tag">5 · Town Square</div>
+  <h3>The Accusation</h3>
 
-<footer>
-  <div class="wrap foot">
-    <span id="status">Solve all 5 to continue.</span>
-    <a id="toRound2" class="cta" href="round2.html" aria-disabled="true">Begin Round 2</a>
+  <!-- ACROSTIC POEM (visible again) -->
+  <div class="letter">
+    <strong>Willow’s Poem (Acrostic)</strong>
+    <div class="content">
+      <p><span class="drop">T</span>he hills remember what the town forgot.</p>
+      <p><span class="drop">R</span>estore the lantern; let blame burn out.</p>
+      <p><span class="drop">U</span>ndo the oath of anger with a single word.</p>
+      <p><span class="drop">C</span>ease your shouting; let silence mend.</p>
+      <p><span class="drop">E</span>nd what began in fear—begin again in truth.</p>
+    </div>
   </div>
-</footer>
+
+  <div class="riddle">
+    <p><b>Question:</b> Read the acrostic — enter the single word that ends the curse.</p>
+    <input id="a5" placeholder="Your answer…"><button data-i="5" class="btn">Submit</button>
+    <div id="r5" class="result"></div>
+    <div id="h5" class="hint"></div>
+  </div>
+</section>
 
 <script>
 const ANSWERS={1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
