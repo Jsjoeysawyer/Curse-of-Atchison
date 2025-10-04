@@ -17,13 +17,19 @@
   .btn[disabled]{opacity:.45; cursor:not-allowed}
   .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
   .small{font-size:12px; color:#bfc6e6}
+  a.btn { text-decoration:none }
+  input[type="text"]{ padding:8px; border-radius:10px; border:1px solid #3a315d; background:#0f0c18; color:#f0e6ff }
+  blockquote{margin:8px 0; padding-left:12px; border-left:3px solid #3d3264; color:#d7cff3}
+
   dialog{ border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:640px; width:calc(100% - 28px);
           padding:0; box-shadow: 0 40px 120px #000f, inset 0 0 0 1px #2d2450; }
   dialog::backdrop{background:#0009}
   .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #2d2450; background:#1a1530}
   .modal-body{padding:16px; color:var(--muted)}
   .x{background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer}
+
   #scanVideo{width:100%;border-radius:12px;background:#000;max-height:60vh}
+
   /* Jump scares */
   #scare, #scareBad { position:fixed; inset:0; background:#000; display:none; z-index:9999; align-items:center; justify-content:center; }
   #scare .flash, #scareBad .flash { position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, #ffffff, #ffd2d2 40%, #000 70%); opacity:0; }
@@ -47,37 +53,42 @@
 </header>
 
 <main class="wrap">
+  <!-- Run control -->
   <section class="card">
     <div class="row">
       <button id="startBtn" class="btn">Start My 30-Minute Run</button>
       <div><b>Timer:</b> <span id="timer">Not started</span></div>
+      <a href="index.html" class="btn" style="margin-left:auto">← Round 1</a>
     </div>
     <div class="row" style="margin-top:8px">
-      <div>Codename: <input id="name" placeholder="e.g., LanternFox" style="padding:8px;border-radius:10px;border:1px solid #3a315d;background:#0f0c18;color:#f0e6ff"> <button id="saveName" class="btn">Save</button></div>
+      <div>Codename: <input id="name" type="text" placeholder="e.g., LanternFox"> <button id="saveName" class="btn">Save</button></div>
+      <button id="resetRun" class="btn" style="margin-left:auto" title="Reset only Round-2 run">Reset Run</button>
     </div>
   </section>
 
+  <!-- Scan / enter -->
   <section class="card">
     <h3>Scan or Enter Token</h3>
     <div class="row">
       <button id="scanBtn" class="btn">Scan with Camera</button>
       <button id="enterBtn" class="btn">Enter Token</button>
-      <a href="index.html" class="btn" style="margin-left:auto">← Round 1</a>
     </div>
     <p class="small" style="margin-top:6px">If scanning fails on your device, use <b>Enter Token</b>.</p>
     <div class="small" id="foundStat" style="margin-top:6px">Found: 0 / 12 · Coins: 0 · Trade used: No</div>
   </section>
 
+  <!-- Trade -->
   <section class="card">
     <h3>One Trade</h3>
     <p class="small">Once per run, agree with someone to <i>give</i> or <i>receive</i> 1 coin (honor system).</p>
     <button id="tradeBtn" class="btn">Use My Trade</button>
   </section>
 
+  <!-- Ritual (appears on WIN) -->
   <section class="card" id="ritualCard" style="display:none">
     <h3>Final Ritual</h3>
     <p class="small">You won your run. Read together:</p>
-    <blockquote style="margin:8px 0; opacity:.9"><em>“Lantern rekindled, river released; song restored, and judgment ceased. From ridge to square, let grudges part—return what’s owed and mend the heart.”</em></blockquote>
+    <blockquote><em>“Lantern rekindled, river released; song restored, and judgment ceased. From ridge to square, let grudges part—return what’s owed and mend the heart.”</em></blockquote>
     <button id="liftBtn" class="btn">Lift the Curse</button>
   </section>
 </main>
@@ -105,14 +116,14 @@
 </dialog>
 
 <!-- Jump Scares -->
-<div id="scare" aria-hidden="true"><div class="flash"></div><div class="face"></div></div>
-<div id="scareBad" aria-hidden="true"><div class="flash"></div><div class="face"></div></div>
+<div id="scare" aria-hidden="true"><div class="flash"></div><div class="face" role="img" aria-label="Wicked Willow appears"></div></div>
+<div id="scareBad" aria-hidden="true"><div class="flash"></div><div class="face" role="img" aria-label="The curse follows you home"></div></div>
 
 <!-- ZXing (cross-browser QR) -->
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0"></script>
 
 <script>
-/* ===== Shared state helpers ===== */
+/* ===== Shared state ===== */
 function S(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
 function W(v){ localStorage.setItem('willow_qr', JSON.stringify(v)); }
 
@@ -133,10 +144,13 @@ const startBtn=document.getElementById('startBtn');
 const timerEl=document.getElementById('timer');
 const nameInp=document.getElementById('name');
 const saveName=document.getElementById('saveName');
+const resetRun=document.getElementById('resetRun');
+
 const scanBtn=document.getElementById('scanBtn');
 const enterBtn=document.getElementById('enterBtn');
 const tradeBtn=document.getElementById('tradeBtn');
 const foundStat=document.getElementById('foundStat');
+
 const ritualCard=document.getElementById('ritualCard');
 const liftBtn=document.getElementById('liftBtn');
 
@@ -149,32 +163,30 @@ const scanVideo=document.getElementById('scanVideo');
 const scanStatus=document.getElementById('scanStatus');
 const scanStop=document.getElementById('scanStop');
 
-let tick=null, stream=null;
+let ticker=null, stream=null;
 
 /* ===== Boot ===== */
 (function boot(){
-  // Ensure Round 1 done? (optional soft gate)
-  const s=S(); const done=[1,2,3,4,5].every(i=>s['s'+i]);
-  if(!done){ /* still allow access */ }
   document.addEventListener('click', (e)=>{
     const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); }
   });
-  saveName.onclick=()=>{ const s=S(); const n=(nameInp.value||'').trim(); if(!n) return alert('Pick a codename first.'); s.name=n; W(s); alert('Saved.'); };
+  const s=S();
+  if(s.name) nameInp.value=s.name;
   startBtn.onclick=startRun;
+  saveName.onclick=()=>{ const s=S(); const n=(nameInp.value||'').trim(); if(!n) return alert('Pick a codename first.'); s.name=n; W(s); alert('Saved.'); };
+  resetRun.onclick=resetRound2;
+
   scanBtn.onclick=openScanner;
   enterBtn.onclick=manualToken;
   tradeBtn.onclick=useTrade;
   liftBtn.onclick=winRitual;
 
-  // Restore UI
-  if(s.name) nameInp.value=s.name;
-  if(s.r2){
-    updateFoundUI();
-    if(s.r2.startedAt && !s.r2.over) startTicker();
-  }
-  // Handle ?token via external scanner
+  // Restore running timer
+  if(s.r2){ updateFoundUI(); if(s.r2.startedAt && !s.r2.over) startTicker(); }
+
+  // Handle ?token from external camera app
   const p=new URLSearchParams(location.search); const t=p.get('token')||p.get('claimToken');
-  if(t) setTimeout(()=>resolveToken(t), 400);
+  if(t) setTimeout(()=>resolveToken(t), 300);
 })();
 
 /* ===== Round control ===== */
@@ -185,12 +197,19 @@ function startRun(){
   s.r2={startedAt:now, endsAt:now+TIME_LIMIT_MIN*60000, points:0, found:{}, tradeUsed:false, doom:false, over:false, win:false};
   W(s); updateFoundUI(); startTicker(); alert('The lantern burns. Your hunt begins!');
 }
+function resetRound2(){
+  if(!confirm('Reset your current Round-2 run?')) return;
+  const s=S(); delete s.r2; W(s);
+  timerEl.textContent='Not started';
+  ritualCard.style.display='none';
+  updateFoundUI();
+}
 function startTicker(){
-  if(tick) clearInterval(tick);
-  tick=setInterval(()=>{
-    const s=S(); if(!s.r2 || s.r2.over){ clearInterval(tick); return; }
+  if(ticker) clearInterval(ticker);
+  ticker=setInterval(()=>{
+    const s=S(); if(!s.r2 || s.r2.over){ clearInterval(ticker); return; }
     const remain=s.r2.endsAt-Date.now();
-    if(remain<=0){ s.r2.over=true; W(s); checkOutcome(); clearInterval(tick); return; }
+    if(remain<=0){ s.r2.over=true; W(s); checkOutcome(); clearInterval(ticker); return; }
     const m=Math.floor(remain/60000), sec=Math.floor((remain%60000)/1000);
     timerEl.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   },1000);
@@ -274,7 +293,6 @@ function checkOutcome(){
 function jumpScare(good){ return new Promise(res=>{
   const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
   el.style.display='flex'; el.classList.add('scare-in');
-  // simple audio sweep
   try{
     const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
     const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(good?400:120, ctx.currentTime);
