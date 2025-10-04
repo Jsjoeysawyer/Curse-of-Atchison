@@ -47,9 +47,8 @@
   .letter:before{content:"Wax Seal"; position:absolute; right:-8px; top:-8px; font-size:10px; padding:6px 8px; border-radius:8px; background:linear-gradient(180deg, #2d243f, #1d1630); border:1px solid #4b3a77; color:#d9c8ff; box-shadow:0 6px 14px #0008; transform:rotate(6deg) }
   .letter .content{margin-top:10px; text-align:center; font-style:italic; line-height:1.6; color:#e8defa;}
   .riddle-input{display:flex; gap:8px; margin-top:12px;}
-  .riddle-input input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid #393057; background:#0f0c18; color:var(--ink);}
+  .riddle-input input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid #393057; background:#0f0c18; color:#f0e6ff;}
   .result{margin-top:8px; font-weight:700} .ok{color: var(--accent)} .no{color: var(--danger)}
-  .hint{font-size:12px; color:#9db2a9}
   .footer{position:sticky; bottom:0; z-index:4; border-top:1px solid #2b2341; background:linear-gradient(0deg, #0f0c18dd, #0f0c18cc 60%, transparent);}
   .ritual{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px;}
   .ritual .status{font-weight:800; letter-spacing:.3px}
@@ -110,7 +109,7 @@
 </header>
 
 <main class="wrap">
-  <p class="small" style="color:var(--muted)">Solve the lore riddles to mint 5 coins → perform the group ritual → unlock Level 2 (QR-only showdown).</p>
+  <p class="small" style="color:var(--muted)">Solve the lore riddles to mint 5 coins → <b>play Round 2</b> (QR showdown) → then perform the group ritual.</p>
 
   <div class="grid" id="grid">
     <!-- SECTION 1 -->
@@ -124,8 +123,8 @@
       </div>
     </section>
 
-    <!-- SECTION 2 -->
-    <section class="card" id="s2"><div class="head"><span class="tag">2 · Mine Mouth</span><h2>The Canary’s Warning</h2></div>
+    <!-- SECTION 2 (renamed) -->
+    <section class="card" id="s2"><div class="head"><span class="tag">2 · Mine Mouth</span><h2>The Warning</h2></div>
       <div class="body">
         <div class="letter"><strong>Miner’s Pocket Letter</strong><div class="content"><p>“If the song stops, turn back. No vein of coal is worth a widow’s veil.”</p></div></div>
         <p><strong>Riddle:</strong> I save you by surrendering breath, a sentinel whose voice foretells death. What am I?</p>
@@ -170,10 +169,10 @@
       </div>
     </section>
 
-    <!-- LEVEL 2 — QR CHECK-INS -->
-    <section class="card hidden" id="lvl2"><div class="head"><span class="tag">Level 2</span><h2>Ghost Town Showdown (QR)</h2></div>
+    <!-- LEVEL 2 — QR CHECK-INS (before ritual) -->
+    <section class="card hidden" id="lvl2"><div class="head"><span class="tag">Round 2</span><h2>Ghost Town Showdown (QR) — Must finish before ritual</h2></div>
       <div class="body">
-        <p><strong>How it works:</strong> Pick a codename. Claim checkpoints by scanning the **QR stickers** at each station (or enter the printed token manually). Use **duels** to steal points. Host sets a timer and declares the winner — everyone else gets a… surprise.</p>
+        <p><strong>How it works:</strong> Pick a codename. Claim checkpoints by scanning the **QR stickers** at each station (or enter the printed token). Use **duels** to steal points. When time’s up, host declares a winner — then the ritual unlocks.</p>
 
         <div class="letter"><strong>Player Setup</strong><div class="content">
           <p>Codename: <input id="name" placeholder="e.g., LanternFox" style="width:60%;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff"> <button id="saveName" class="pill">Save</button></p>
@@ -181,7 +180,7 @@
         </div></div>
 
         <div class="letter"><strong>QR Check-ins (Privacy-First)</strong><div class="content">
-          <p>Scan the QR at each checkpoint. If you can’t scan, tap the button to enter the printed token.</p>
+          <p>Scan the QR at each checkpoint. No GPS used. If you can’t scan, tap to enter the printed token manually.</p>
           <p><button id="qrClaimBtn" class="pill">Claim via QR / Code</button></p>
           <div id="qrClaimInfo" class="small"></div>
         </div></div>
@@ -201,7 +200,7 @@
           <p>PIN: <input id="pin" type="password" placeholder="1312" style="width:120px;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff">
             Winner: <input id="winnerName" placeholder="e.g., LanternFox" style="width:220px;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0e18;color:#f0e6ff">
             <button id="setWinner" class="pill">Declare Winner</button></p>
-          <p class="small">Default PIN is <code>1312</code> (edit in code).</p>
+          <p class="small">Round 2 must complete before the ritual unlocks. Default PIN is <code>1312</code> (edit in code).</p>
         </div></div>
       </div>
     </section>
@@ -211,8 +210,10 @@
 <!-- Footer / Ritual -->
 <footer class="footer">
   <div class="wrap ritual" id="ritual">
-    <div><div class="status" id="ritualStatus">Ritual Locked — collect 5 coins.</div>
-      <div class="small" style="color:var(--muted)">Coins mint when you answer each section. Use “Hints” if you’re stuck.</div></div>
+    <div>
+      <div class="status" id="ritualStatus">Ritual Locked — collect 5 coins.</div>
+      <div class="small" style="color:var(--muted)">Coins mint when you answer each section. Use “Hints” if you’re stuck.</div>
+    </div>
     <div><button class="cast" id="castBtn" disabled>Perform Final Ritual</button></div>
   </div>
   <div class="wrap ritual spell" id="spellPane">
@@ -220,7 +221,7 @@
     <div class="spell">
       <p><strong>Final Rite of Unbinding</strong></p>
       <p style="color:#cfe9e0"><em>“Lantern rekindled, river released; song restored, and judgment ceased.<br>From ridge to square, let grudges part—<br>Return what’s owed and mend the heart.”</em></p>
-      <p class="small">Gather in a circle. Hold up your five coins. Read the words together aloud. Then tap the button.</p>
+      <p class="small">Gather in a circle. After Round 2 is finished and a winner is declared, read together and tap the button.</p>
       <button id="lift" class="pill">Lift the Curse</button>
     </div>
   </div>
@@ -230,8 +231,16 @@
 <div id="scare" aria-hidden="true"><div class="flash"></div><div class="face" role="img" aria-label="Wicked Willow appears"></div></div>
 
 <!-- Prize -->
-<dialog id="prize"><div class="modal-head"><strong>✨ The Curse Lifts!</strong><button class="x" data-close="prize" aria-label="Close">Close</button></div>
-  <div class="modal-body"><p>The wind softens, the river stirs, and the Mayor’s whisper fades at last.</p><p><strong>Prize:</strong> Show this to the host for your reward.</p></div></dialog>
+<dialog id="prize">
+  <div class="modal-head">
+    <strong>✨ The Curse Lifts!</strong>
+    <button class="x" data-close="prize" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <p>The wind softens, the river stirs, and the Mayor’s whisper fades at last.</p>
+    <p><strong>Prize:</strong> Show this to the host for your reward.</p>
+  </div>
+</dialog>
 
 <script>
 /* ====== Level 1 (Riddles) ====== */
@@ -249,6 +258,16 @@ const hints=hs.map(id=>document.getElementById(id));
 document.getElementById('hintToggle').onclick=()=>toggleHints();
 document.getElementById('reset').onclick=()=>{ if(confirm('Reset ALL progress?')){ localStorage.clear(); location.reload(); } };
 
+// Enable modal close buttons
+document.addEventListener('click', (e)=>{
+  const btn=e.target.closest('[data-close]');
+  if(btn){
+    const id=btn.getAttribute('data-close');
+    const dlg=document.getElementById(id);
+    if(dlg && dlg.close) dlg.close();
+  }
+});
+
 function getState(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
 function setState(s){ localStorage.setItem('willow_qr', JSON.stringify(s)); }
 function ensureId(){ const s=getState(); if(!s.id){ s.id=crypto.randomUUID(); setState(s);} return s.id; }
@@ -262,8 +281,15 @@ function initLvl1(){
     btn.onclick=()=>check(idx+1);
     inputs[idx].addEventListener('keydown',e=>{ if(e.key==='Enter') check(idx+1); });
   });
-  castBtn.onclick=()=>{ if(!castBtn.disabled){ spellPane.classList.add('open'); spellPane.scrollIntoView({behavior:'smooth'}) } };
-  document.getElementById('lift').onclick=async()=>{ await jumpScare(); document.getElementById('prize').showModal(); confetti(); document.getElementById('lvl2').classList.remove('hidden'); document.getElementById('lvl2').scrollIntoView({behavior:'smooth'}); };
+
+  castBtn.onclick=()=>{ if(!castBtn.disabled){ openRitual(); } };
+
+  document.getElementById('lift').onclick=async()=>{
+    await jumpScare();
+    const dlg=document.getElementById('prize');
+    if(dlg && dlg.showModal) dlg.showModal();
+    confetti();
+  };
 }
 function check(i){
   const val=(inputs[i-1].value||'').trim().toLowerCase();
@@ -275,9 +301,29 @@ function award(i,animate){
   coins[i-1].classList.add('got');
   if(animate) coins[i-1].animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:550});
 }
+
+// Ritual gating + auto-open when Round 2 completes
 function updateProgress(){
   const s=getState(); const count=[1,2,3,4,5].filter(k=>s['s'+k]).length; bar.style.width=(count/5*100)+'%';
-  ritualStatus.textContent=(count===5)?'Ritual Ready — gather and cast the spell.':`Ritual Locked — ${5-count} coin(s) remaining.`; castBtn.disabled=(count<5);
+  const lvl2Done = !!s.lvl2Complete;
+  if(count===5){
+    document.getElementById('lvl2').classList.remove('hidden');
+    ritualStatus.textContent = lvl2Done
+      ? 'Ritual Ready — gather and cast the spell.'
+      : 'Ritual Locked — finish Round 2, then perform the ritual.';
+    castBtn.disabled = !lvl2Done;
+
+    // Auto-open if both complete (e.g., on page reload after winner declared)
+    if(lvl2Done){ openRitual(true); }
+  }else{
+    ritualStatus.textContent = `Ritual Locked — ${5-count} coin(s) remaining.`;
+    castBtn.disabled = true;
+  }
+}
+function openRitual(fromAuto=false){
+  spellPane.classList.add('open');
+  document.getElementById('ritual').scrollIntoView({behavior:'smooth', block:'start'});
+  if(!fromAuto){ confetti(); } // small flourish when user taps button themselves
 }
 function toggleHints(){ const on=document.getElementById('hintToggle').getAttribute('aria-expanded')==='true';
   document.getElementById('hintToggle').setAttribute('aria-expanded', String(!on)); document.getElementById('hintToggle').textContent='Hints: '+(!on?'On':'Off');
@@ -303,7 +349,7 @@ function confetti(){ const n=120, frag=document.createDocumentFragment();
       {duration: dur,easing:'cubic-bezier(.2,.7,.2,1)',fill:'forwards'}).onfinish=()=>d.remove();
   } document.body.appendChild(frag); }
 
-/* ====== Level 2 (QR-only) ====== */
+/* ====== Round 2 (QR-only, before ritual) ====== */
 const els = {
   lvl2: document.getElementById('lvl2'),
   me: document.getElementById('me'),
@@ -323,14 +369,8 @@ const els = {
   setWinner: document.getElementById('setWinner'),
 };
 
-// Replace with your own secret tokens if desired
-const QR_TOKENS = {
-  'R1DGh7': 'ridge',
-  'M1N3x2': 'mine',
-  'SQrE99': 'square'
-};
+const QR_TOKENS = { 'R1DGh7':'ridge', 'M1N3x2':'mine', 'SQrE99':'square' };
 const CHECKPOINT_POINTS = 2;
-
 const ANAGRAMS = [
   {scramble:'L A N T E R N', answer:'lantern'},
   {scramble:'C O A L D U S T', answer:'coaldust'},
@@ -354,7 +394,6 @@ els.setEnd.onclick=()=>{
   const iso=els.endTime.value; if(!iso) return alert('Pick an end time');
   const s=getState(); s.endISO=iso; setState(s); alert('Countdown set!');
 };
-
 setInterval(()=>{
   const s=getState(); if(!s.endISO){ els.tRemain.textContent='—'; return; }
   const diff=new Date(s.endISO).getTime()-Date.now(); if(diff<=0){ els.tRemain.textContent='00:00'; return; }
@@ -362,9 +401,8 @@ setInterval(()=>{
   els.tRemain.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
 },1000);
 
-// Duels (local, code-based)
-els.startDuel.onclick=()=>{
-  const name=(getState().name||'').trim(); if(!name) return alert('Save your codename first.');
+// Duels (local)
+els.startDuel.onclick=()=>{ const name=(getState().name||'').trim(); if(!name) return alert('Save your codename first.');
   const code = makeCode(); const puzzle = ANAGRAMS[Math.floor(Math.random()*ANAGRAMS.length)];
   els.duelArea.innerHTML = `<p><strong>Share code:</strong> <span style="color:#9ef0c9;font-size:18px">${code}</span></p>
     <p>Your opponent taps <em>Defend</em> and enters this code. Puzzle: <b>${puzzle.scramble}</b> (15s)</p>
@@ -372,8 +410,7 @@ els.startDuel.onclick=()=>{
   document.getElementById('attFail').onclick=()=>{ addPoints(1); els.duelArea.innerHTML=''; };
   document.getElementById('attOk').onclick=()=>{ els.duelArea.innerHTML=''; };
 };
-els.defendDuel.onclick=()=>{
-  const code = prompt('Enter the 6-digit code:'); if(!code || !/^\d{6}$/.test(code)) return;
+els.defendDuel.onclick=()=>{ const code = prompt('Enter the 6-digit code:'); if(!code || !/^\d{6}$/.test(code)) return;
   const puzzle = ANAGRAMS[Math.floor(Math.random()*ANAGRAMS.length)];
   const start=Date.now();
   els.duelArea.innerHTML = `<p><strong>Anagram (${code})</strong> — 15s</p>
@@ -388,12 +425,16 @@ els.defendDuel.onclick=()=>{
   };
 };
 
+// Host declares winner => unlock ritual AND auto-open it
 els.setWinner.onclick=()=>{
   if(els.pin.value!==HOST_PIN) return alert('Wrong PIN.');
   const w=(els.winnerName.value||'').trim(); if(!w) return alert('Enter winner codename.');
-  const mine=(getState().name||'').trim();
-  if(mine.toLowerCase()!==w.toLowerCase()){ jumpScare().then(()=> alert(`Winner is @${w}!`)); }
-  else { confetti(); alert(`You are the winner, @${w}!`); }
+  const s=getState(); s.lvl2Complete=true; setState(s);
+  alert(`Winner is @${w}. The ritual is now unlocked!`);
+  updateProgress();        // enable ritual
+  openRitual();            // <-- AUTO-OPEN ritual immediately
+  const mine=(s.name||'').trim().toLowerCase();
+  if(mine && mine===w.toLowerCase()) confetti();
 };
 
 // QR token claim logic
@@ -414,7 +455,6 @@ function claimViaToken(token){
   if(t){ setTimeout(()=>claimViaToken(t), 400); }
 })();
 
-// points
 function addPoints(n){ const s=getState(); s.points=(s.points||0)+n; setState(s); document.getElementById('points').textContent=s.points; }
 function makeCode(){ return (''+Math.floor(100000+Math.random()*900000)); }
 
@@ -424,7 +464,7 @@ function makeCode(){ return (''+Math.floor(100000+Math.random()*900000)); }
   const s=getState();
   if(s.name) document.getElementById('me').textContent='@'+s.name;
   if(s.points!=null) document.getElementById('points').textContent=s.points;
-  const all = [1,2,3,4,5].every(i=>s['s'+i]); if(all) document.getElementById('lvl2').classList.remove('hidden');
+  if([1,2,3,4,5].every(i=>s['s'+i])) document.getElementById('lvl2').classList.remove('hidden');
   initLvl1();
 })();
 </script>
