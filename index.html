@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wicked Willow • Curse of Atchison (QR Check-ins)</title>
+<title>Wicked Willow • Curse of Atchison (QR Round 2)</title>
 <meta name="theme-color" content="#111017">
 <style>
   :root{ --bg:#0c0a12; --panel:#131022; --ink:#f0e6ff; --muted:#c8b8ffb3; --accent:#9ef0c9; --danger:#ff6b6b; --coin:#f6c945; --glow:#52ffb380; }
@@ -11,12 +11,12 @@
   body{ margin:0; background: radial-gradient(1200px 700px at 70% -10%, #1b1533 0%, var(--bg) 45%, #09070f 100%); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.55; overflow-x:hidden; }
   .stars{position:fixed; inset:0; pointer-events:none; z-index:0}
   .stars:before,.stars:after{content:""; position:absolute; inset:-50vh -50vw; background:
-      radial-gradient(2px 2px at 10% 20%, #ffffff55 50%, transparent 60%),
-      radial-gradient(2px 2px at 30% 80%, #ffffff33 50%, transparent 60%),
-      radial-gradient(2px 2px at 70% 30%, #ffffff44 50%, transparent 60%),
-      radial-gradient(2px 2px at 90% 60%, #ffffff22 50%, transparent 60%),
-      radial-gradient(1.5px 1.5px at 50% 50%, #ffffff22 50%, transparent 60%);
-      animation: drift 120s linear infinite; }
+    radial-gradient(2px 2px at 10% 20%, #ffffff55 50%, transparent 60%),
+    radial-gradient(2px 2px at 30% 80%, #ffffff33 50%, transparent 60%),
+    radial-gradient(2px 2px at 70% 30%, #ffffff44 50%, transparent 60%),
+    radial-gradient(2px 2px at 90% 60%, #ffffff22 50%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 50% 50%, #ffffff22 50%, transparent 60%);
+    animation: drift 120s linear infinite; }
   .stars:after{animation-duration:160s; opacity:.6; filter:blur(.5px)}
   @keyframes drift{to{transform:translateY(40vh)}}
   header{ position:sticky; top:0; z-index:5; backdrop-filter: blur(8px); background:linear-gradient(180deg, #0f0c18dd, #0f0c18cc 60%, transparent); border-bottom:1px solid #30264a; box-shadow: 0 10px 30px #000d; }
@@ -49,6 +49,7 @@
   .riddle-input{display:flex; gap:8px; margin-top:12px;}
   .riddle-input input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid #393057; background:#0f0c18; color:#f0e6ff;}
   .result{margin-top:8px; font-weight:700} .ok{color: var(--accent)} .no{color: var(--danger)}
+  .hint{font-size:12px; color:#9db2a9}
   .footer{position:sticky; bottom:0; z-index:4; border-top:1px solid #2b2341; background:linear-gradient(0deg, #0f0c18dd, #0f0c18cc 60%, transparent);}
   .ritual{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px;}
   .ritual .status{font-weight:800; letter-spacing:.3px}
@@ -61,7 +62,6 @@
   .modal-body{padding:16px; color:var(--muted)}
   .x{background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer}
   .hidden{display:none !important} .small{font-size:12px} .sep{height:1px; background:#2a2243; margin:12px 0}
-
   /* Jump scare */
   #scare { position:fixed; inset:0; background:#000; display:none; z-index:9999; align-items:center; justify-content:center; }
   #scare .flash { position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, #ffffff, #ffd2d2 40%, #000 70%); opacity:0; }
@@ -109,7 +109,7 @@
 </header>
 
 <main class="wrap">
-  <p class="small" style="color:var(--muted)">Solve the lore riddles to mint 5 coins → <b>play Round 2</b> (QR showdown) → then perform the group ritual.</p>
+  <p class="small" style="color:var(--muted)">Mint 5 lore coins (riddles) → Round 2: roam, scan stickers, trade, survive Willow’s whispers → reach <b>10 coins</b> to unlock the ritual.</p>
 
   <div class="grid" id="grid">
     <!-- SECTION 1 -->
@@ -123,7 +123,7 @@
       </div>
     </section>
 
-    <!-- SECTION 2 (renamed) -->
+    <!-- SECTION 2 -->
     <section class="card" id="s2"><div class="head"><span class="tag">2 · Mine Mouth</span><h2>The Warning</h2></div>
       <div class="body">
         <div class="letter"><strong>Miner’s Pocket Letter</strong><div class="content"><p>“If the song stops, turn back. No vein of coal is worth a widow’s veil.”</p></div></div>
@@ -169,38 +169,30 @@
       </div>
     </section>
 
-    <!-- LEVEL 2 — QR CHECK-INS (before ritual) -->
-    <section class="card hidden" id="lvl2"><div class="head"><span class="tag">Round 2</span><h2>Ghost Town Showdown (QR) — Must finish before ritual</h2></div>
+    <!-- ROUND 2 — Self-running -->
+    <section class="card hidden" id="lvl2"><div class="head"><span class="tag">Round 2</span><h2>Willow’s Favor — Coin Hunt</h2></div>
       <div class="body">
-        <p><strong>How it works:</strong> Pick a codename. Claim checkpoints by scanning the **QR stickers** at each station (or enter the printed token). Use **duels** to steal points. When time’s up, host declares a winner — then the ritual unlocks.</p>
+        <p>Start with <b>5 coins</b> from the story. Wander. Scan stickers. Trade. Survive Willow’s whispers. Reach <b>10+ coins</b> to unlock the ritual.</p>
 
-        <div class="letter"><strong>Player Setup</strong><div class="content">
+        <div class="letter"><strong>Your Pouch</strong><div class="content">
           <p>Codename: <input id="name" placeholder="e.g., LanternFox" style="width:60%;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff"> <button id="saveName" class="pill">Save</button></p>
-          <p>You: <span id="me" style="color:#9ef0c9">—</span> · Points: <span id="points">0</span></p>
+          <p>Coins: <span id="coinTotal" style="font-weight:800;color:#9ef0c9">—</span></p>
         </div></div>
 
-        <div class="letter"><strong>QR Check-ins (Privacy-First)</strong><div class="content">
-          <p>Scan the QR at each checkpoint. No GPS used. If you can’t scan, tap to enter the printed token manually.</p>
-          <p><button id="qrClaimBtn" class="pill">Claim via QR / Code</button></p>
-          <div id="qrClaimInfo" class="small"></div>
+        <div class="letter"><strong>Scan Stickers</strong><div class="content">
+          <p>Scan any sticker. If the camera won’t scan, tap and enter the printed token.</p>
+          <p><button id="manualToken" class="pill">Enter Token</button></p>
+          <div id="scanMsg" class="small"></div>
         </div></div>
 
-        <div class="letter"><strong>Countdown</strong><div class="content">
-          <p>End Time: <input id="endTime" type="datetime-local" style="padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff">
-            <button id="setEnd" class="pill">Set</button></p>
-          <p>Time Remaining: <span id="tRemain">—</span></p>
+        <div class="letter"><strong>Trade 1 Coin</strong><div class="content">
+          <p><button id="showTrade" class="pill">Show Trade Code (Send 1)</button> <button id="recvTrade" class="pill">Receive 1 (Enter Code)</button></p>
+          <div id="tradeArea" class="small"></div>
         </div></div>
 
-        <div class="letter"><strong>Duels (Steal 1 point)</strong><div class="content">
-          <p><button id="startDuel" class="pill">Start Duel (Attacker)</button> <button id="defendDuel" class="pill">Defend</button></p>
-          <div id="duelArea" class="small"></div>
-        </div></div>
-
-        <div class="letter"><strong>Host Mode</strong><div class="content">
-          <p>PIN: <input id="pin" type="password" placeholder="1312" style="width:120px;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff">
-            Winner: <input id="winnerName" placeholder="e.g., LanternFox" style="width:220px;padding:6px;border-radius:8px;border:1px solid #393057;background:#0f0e18;color:#f0e6ff">
-            <button id="setWinner" class="pill">Declare Winner</button></p>
-          <p class="small">Round 2 must complete before the ritual unlocks. Default PIN is <code>1312</code> (edit in code).</p>
+        <div class="letter"><strong>Willow’s Whisper</strong><div class="content">
+          <p>Random events appear now and then. Choose your fate…</p>
+          <div id="whisperArea" class="small"></div>
         </div></div>
       </div>
     </section>
@@ -211,8 +203,8 @@
 <footer class="footer">
   <div class="wrap ritual" id="ritual">
     <div>
-      <div class="status" id="ritualStatus">Ritual Locked — collect 5 coins.</div>
-      <div class="small" style="color:var(--muted)">Coins mint when you answer each section. Use “Hints” if you’re stuck.</div>
+      <div class="status" id="ritualStatus">Ritual Locked — collect 5 coins (story) to access Round 2.</div>
+      <div class="small" style="color:var(--muted)">Ritual auto-unlocks when you have <b>10+</b> coins after Round 2.</div>
     </div>
     <div><button class="cast" id="castBtn" disabled>Perform Final Ritual</button></div>
   </div>
@@ -221,7 +213,7 @@
     <div class="spell">
       <p><strong>Final Rite of Unbinding</strong></p>
       <p style="color:#cfe9e0"><em>“Lantern rekindled, river released; song restored, and judgment ceased.<br>From ridge to square, let grudges part—<br>Return what’s owed and mend the heart.”</em></p>
-      <p class="small">Gather in a circle. After Round 2 is finished and a winner is declared, read together and tap the button.</p>
+      <p class="small">Gather in a circle. If your pouch holds 10 or more, speak the words and tap the button.</p>
       <button id="lift" class="pill">Lift the Curse</button>
     </div>
   </div>
@@ -242,6 +234,29 @@
   </div>
 </dialog>
 
+<!-- Loser’s Curse popup -->
+<dialog id="loser">
+  <div class="modal-head">
+    <strong>Loser’s Curse 😈</strong>
+    <button class="x" data-close="loser" aria-label="Close">Close</button>
+  </div>
+  <div class="modal-body">
+    <p>You’ve been <em>seriously</em> cursed. Pick one silly forfeit to clear it:</p>
+    <ul>
+      <li>Wear the Mayor’s mustache (drawn on finger) for 5 minutes.</li>
+      <li>Speak only in rhyme for 2 minutes.</li>
+      <li>Ask a stranger for a ghost story.</li>
+    </ul>
+    <p class="small">When done, take Willow’s pity: solve this tiny riddle for +1 back:</p>
+    <p><em>“I have keys but open no doors; I have space but no rooms. What am I?”</em></p>
+    <div class="riddle-input">
+      <input id="loserAns" placeholder="answer…"/>
+      <button id="loserSubmit" class="pill">Redeem +1</button>
+    </div>
+    <div id="loserMsg" class="small"></div>
+  </div>
+</dialog>
+
 <script>
 /* ====== Level 1 (Riddles) ====== */
 const LVL1_ANS = {1:'fire',2:'canary',3:'river',4:'ton',5:'truce'};
@@ -257,16 +272,7 @@ const results=rs.map(id=>document.getElementById(id));
 const hints=hs.map(id=>document.getElementById(id));
 document.getElementById('hintToggle').onclick=()=>toggleHints();
 document.getElementById('reset').onclick=()=>{ if(confirm('Reset ALL progress?')){ localStorage.clear(); location.reload(); } };
-
-// Enable modal close buttons
-document.addEventListener('click', (e)=>{
-  const btn=e.target.closest('[data-close]');
-  if(btn){
-    const id=btn.getAttribute('data-close');
-    const dlg=document.getElementById(id);
-    if(dlg && dlg.close) dlg.close();
-  }
-});
+document.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); if(dlg && dlg.close) dlg.close(); } });
 
 function getState(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
 function setState(s){ localStorage.setItem('willow_qr', JSON.stringify(s)); }
@@ -281,15 +287,8 @@ function initLvl1(){
     btn.onclick=()=>check(idx+1);
     inputs[idx].addEventListener('keydown',e=>{ if(e.key==='Enter') check(idx+1); });
   });
-
   castBtn.onclick=()=>{ if(!castBtn.disabled){ openRitual(); } };
-
-  document.getElementById('lift').onclick=async()=>{
-    await jumpScare();
-    const dlg=document.getElementById('prize');
-    if(dlg && dlg.showModal) dlg.showModal();
-    confetti();
-  };
+  document.getElementById('lift').onclick=async()=>{ await jumpScare(); const dlg=document.getElementById('prize'); if(dlg && dlg.showModal) dlg.showModal(); confetti(); };
 }
 function check(i){
   const val=(inputs[i-1].value||'').trim().toLowerCase();
@@ -302,35 +301,29 @@ function award(i,animate){
   if(animate) coins[i-1].animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:550});
 }
 
-// Ritual gating + auto-open when Round 2 completes
+/* ====== Ritual gating (10+) ====== */
 function updateProgress(){
   const s=getState(); const count=[1,2,3,4,5].filter(k=>s['s'+k]).length; bar.style.width=(count/5*100)+'%';
-  const lvl2Done = !!s.lvl2Complete;
-  if(count===5){
-    document.getElementById('lvl2').classList.remove('hidden');
-    ritualStatus.textContent = lvl2Done
-      ? 'Ritual Ready — gather and cast the spell.'
-      : 'Ritual Locked — finish Round 2, then perform the ritual.';
-    castBtn.disabled = !lvl2Done;
-
-    // Auto-open if both complete (e.g., on page reload after winner declared)
-    if(lvl2Done){ openRitual(true); }
-  }else{
-    ritualStatus.textContent = `Ritual Locked — ${5-count} coin(s) remaining.`;
-    castBtn.disabled = true;
-  }
+  // Unlock Round 2 after 5 story coins
+  if(count===5){ document.getElementById('lvl2').classList.remove('hidden'); ritualStatus.textContent='Round 2 active — reach 10 coins to unlock the ritual.'; }
+  else { ritualStatus.textContent=`Ritual Locked — ${5-count} coin(s) remaining in the story.`; }
+  // Ritual unlock if coins >=10
+  const currentCoins = (s.round2 && typeof s.round2.coins==='number') ? s.round2.coins : 0;
+  const canRitual = (count===5 && currentCoins>=10);
+  castBtn.disabled = !canRitual;
+  if(canRitual) openRitual(true);
 }
-function openRitual(fromAuto=false){
+function openRitual(auto=false){
   spellPane.classList.add('open');
   document.getElementById('ritual').scrollIntoView({behavior:'smooth', block:'start'});
-  if(!fromAuto){ confetti(); } // small flourish when user taps button themselves
+  if(!auto) confetti();
 }
 function toggleHints(){ const on=document.getElementById('hintToggle').getAttribute('aria-expanded')==='true';
   document.getElementById('hintToggle').setAttribute('aria-expanded', String(!on)); document.getElementById('hintToggle').textContent='Hints: '+(!on?'On':'Off');
   hints.forEach(h=>h.classList.toggle('hidden', on));
 }
 
-/* ====== Jump scare + confetti ====== */
+/* ====== Scare + confetti ====== */
 function jumpScare(){ return new Promise(res=>{ scare.style.display='flex'; scare.classList.add('scare-in');
   try{ const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
     const N=2*ctx.sampleRate, nb=ctx.createBuffer(1,N,ctx.sampleRate), ch=nb.getChannelData(0);
@@ -349,123 +342,148 @@ function confetti(){ const n=120, frag=document.createDocumentFragment();
       {duration: dur,easing:'cubic-bezier(.2,.7,.2,1)',fill:'forwards'}).onfinish=()=>d.remove();
   } document.body.appendChild(frag); }
 
-/* ====== Round 2 (QR-only, before ritual) ====== */
-const els = {
+/* ====== ROUND 2: Willow’s Favor (self-running) ====== */
+const el = {
   lvl2: document.getElementById('lvl2'),
-  me: document.getElementById('me'),
-  points: document.getElementById('points'),
   nameInp: document.getElementById('name'),
   saveName: document.getElementById('saveName'),
-  qrBtn: document.getElementById('qrClaimBtn'),
-  qrInfo: document.getElementById('qrClaimInfo'),
-  endTime: document.getElementById('endTime'),
-  setEnd: document.getElementById('setEnd'),
-  tRemain: document.getElementById('tRemain'),
-  startDuel: document.getElementById('startDuel'),
-  defendDuel: document.getElementById('defendDuel'),
-  duelArea: document.getElementById('duelArea'),
-  pin: document.getElementById('pin'),
-  winnerName: document.getElementById('winnerName'),
-  setWinner: document.getElementById('setWinner'),
+  total: document.getElementById('coinTotal'),
+  manualToken: document.getElementById('manualToken'),
+  scanMsg: document.getElementById('scanMsg'),
+  showTrade: document.getElementById('showTrade'),
+  recvTrade: document.getElementById('recvTrade'),
+  tradeArea: document.getElementById('tradeArea'),
+  whisperArea: document.getElementById('whisperArea')
 };
 
-const QR_TOKENS = { 'R1DGh7':'ridge', 'M1N3x2':'mine', 'SQrE99':'square' };
-const CHECKPOINT_POINTS = 2;
-const ANAGRAMS = [
-  {scramble:'L A N T E R N', answer:'lantern'},
-  {scramble:'C O A L D U S T', answer:'coaldust'},
-  {scramble:'G U L C H', answer:'gulch'},
-  {scramble:'W I L L O W', answer:'willow'},
-  {scramble:'S P E L L', answer:'spell'}
-];
-const HOST_PIN = '1312';
-
-els.saveName.onclick=()=>{
-  const name=(els.nameInp.value||'').trim();
-  if(!name) return alert('Pick a codename first.');
-  const s=getState(); s.name=name; setState(s);
-  els.me.textContent='@'+name;
-};
-els.qrBtn.onclick=()=>{
-  const token = prompt('Enter the token printed on the QR sticker:');
-  if(token) claimViaToken(token);
-};
-els.setEnd.onclick=()=>{
-  const iso=els.endTime.value; if(!iso) return alert('Pick an end time');
-  const s=getState(); s.endISO=iso; setState(s); alert('Countdown set!');
-};
-setInterval(()=>{
-  const s=getState(); if(!s.endISO){ els.tRemain.textContent='—'; return; }
-  const diff=new Date(s.endISO).getTime()-Date.now(); if(diff<=0){ els.tRemain.textContent='00:00'; return; }
-  const m=Math.floor(diff/60000), sec=Math.floor((diff%60000)/1000);
-  els.tRemain.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-},1000);
-
-// Duels (local)
-els.startDuel.onclick=()=>{ const name=(getState().name||'').trim(); if(!name) return alert('Save your codename first.');
-  const code = makeCode(); const puzzle = ANAGRAMS[Math.floor(Math.random()*ANAGRAMS.length)];
-  els.duelArea.innerHTML = `<p><strong>Share code:</strong> <span style="color:#9ef0c9;font-size:18px">${code}</span></p>
-    <p>Your opponent taps <em>Defend</em> and enters this code. Puzzle: <b>${puzzle.scramble}</b> (15s)</p>
-    <button id="attFail" class="pill">They failed → I steal 1</button> <button id="attOk" class="pill">They solved it</button>`;
-  document.getElementById('attFail').onclick=()=>{ addPoints(1); els.duelArea.innerHTML=''; };
-  document.getElementById('attOk').onclick=()=>{ els.duelArea.innerHTML=''; };
-};
-els.defendDuel.onclick=()=>{ const code = prompt('Enter the 6-digit code:'); if(!code || !/^\d{6}$/.test(code)) return;
-  const puzzle = ANAGRAMS[Math.floor(Math.random()*ANAGRAMS.length)];
-  const start=Date.now();
-  els.duelArea.innerHTML = `<p><strong>Anagram (${code})</strong> — 15s</p>
-    <p style="color:#9ef0c9;font-size:18px">${puzzle.scramble}</p>
-    <input id="defAns" placeholder="answer…" style="padding:8px;border-radius:8px;border:1px solid #393057;background:#0f0c18;color:#f0e6ff">
-    <button id="defSubmit" class="pill">Submit</button> <span id="defMsg" class="small"></span>`;
-  document.getElementById('defSubmit').onclick=()=>{
-    const val=(document.getElementById('defAns').value||'').trim().toLowerCase();
-    const ok = (Date.now()-start)<15000 && val===puzzle.answer;
-    document.getElementById('defMsg').textContent = ok? 'Solved in time — tell attacker!' : 'Too slow/wrong — they may steal.';
-    setTimeout(()=>{ els.duelArea.innerHTML=''; }, 1500);
-  };
+// Printed token → effect mapping (matches your PDF)
+const TOKEN_EFFECTS = {
+  // Blessed +1
+  'B1H3X9':'gain1','B2L2M4':'gain1','B3Q7K1':'gain1','B4N8P2':'gain1',
+  // Golden +2
+  'G2A7R5':'gain2','G2C1T8':'gain2',
+  // Cursed −1
+  'C1D9Z3':'lose1','C2F4Y6':'lose1','C3J2V8':'lose1','C4K5U1':'lose1',
+  // Tangled −2
+  'T2M8Q4':'lose2','T2R6N7':'lose2',
+  // Doom wipe
+  'D0O0M1':'wipe','D0O0M2':'wipe'
 };
 
-// Host declares winner => unlock ritual AND auto-open it
-els.setWinner.onclick=()=>{
-  if(els.pin.value!==HOST_PIN) return alert('Wrong PIN.');
-  const w=(els.winnerName.value||'').trim(); if(!w) return alert('Enter winner codename.');
-  const s=getState(); s.lvl2Complete=true; setState(s);
-  alert(`Winner is @${w}. The ritual is now unlocked!`);
-  updateProgress();        // enable ritual
-  openRitual();            // <-- AUTO-OPEN ritual immediately
-  const mine=(s.name||'').trim().toLowerCase();
-  if(mine && mine===w.toLowerCase()) confetti();
-};
+function r2State(){ const s=getState(); s.round2 = s.round2 || { coins: null, usedTokens:{} }; setState(s); return s.round2; }
+function setR2(p){ const s=getState(); s.round2 = p; setState(s); }
 
-// QR token claim logic
-function claimViaToken(token){
-  token = (token||'').trim();
-  const id = QR_TOKENS[token];
-  if(!id) return alert('Invalid code.');
-  const s=getState(); s.cp=s.cp||{};
-  if(s.cp[id]) return alert('Already claimed.');
-  s.cp[id]=true; setState(s);
-  addPoints(CHECKPOINT_POINTS);
-  alert(`Checkpoint claimed: ${id} (+${CHECKPOINT_POINTS})`);
+function initRound2(){
+  const s=getState(); const r = r2State();
+  // start at 5 when round2 first appears
+  if(r.coins==null){ r.coins = 5; setR2(r); }
+  if(s.name){ /* optional use */ }
+  el.total.textContent = r.coins;
+
+  el.saveName.onclick=()=>{ const name=(el.nameInp.value||'').trim(); if(!name) return alert('Pick a codename first.'); const ss=getState(); ss.name=name; setState(ss); toast('Codename saved: @'+name); };
+  el.manualToken.onclick=()=>{ const t = prompt('Enter the token printed on the sticker (e.g., B1H3X9):'); if(!t) return; applyToken(t.trim().toUpperCase()); };
+
+  // auto-claim if URL has ?t=<token> or ?fx=...
+  const p = new URLSearchParams(location.search);
+  const token = p.get('t') || p.get('token');
+  const fx = p.get('fx');
+  if(token){ setTimeout(()=>applyToken(token.toUpperCase(), fx), 350); }
+
+  // Trade
+  el.showTrade.onclick=()=>startTradeSend();
+  el.recvTrade.onclick=()=>startTradeReceive();
+
+  // Willow’s Whisper every ~12 min
+  scheduleWhisper();
+  updateProgress();
 }
-// auto-claim if URL has ?token=...
-(function handleUrlQr(){
-  const p=new URLSearchParams(window.location.search);
-  const t=p.get('token')||p.get('claimToken');
-  if(t){ setTimeout(()=>claimViaToken(t), 400); }
-})();
 
-function addPoints(n){ const s=getState(); s.points=(s.points||0)+n; setState(s); document.getElementById('points').textContent=s.points; }
-function makeCode(){ return (''+Math.floor(100000+Math.random()*900000)); }
+function adjustCoins(delta, reason){
+  const r = r2State();
+  r.coins = Math.max(0, (r.coins||0) + delta);
+  setR2(r);
+  el.total.textContent = r.coins;
+  el.scanMsg.textContent = `${delta>0?'+':'−'}${Math.abs(delta)} coin ${reason?`(${reason})`:''}`;
+  el.scanMsg.style.color = delta>0 ? '#9ef0c9' : '#ff6b6b';
+  // Ritual unlock check
+  updateProgress();
+  // If wiped badly, show loser’s curse modal
+  if(r.coins===0 && document.getElementById('loser') && !document.getElementById('loser').open){
+    document.getElementById('loser').showModal();
+    document.getElementById('loserSubmit').onclick=()=>{
+      const v=(document.getElementById('loserAns').value||'').trim().toLowerCase();
+      if(v==='keyboard'){ adjustCoins(+1,'pity from Willow'); document.getElementById('loserMsg').textContent='Pity granted. +1 coin.'; }
+      else { document.getElementById('loserMsg').textContent='Not it. (Hint: you are typing on one.)'; }
+    };
+  }
+}
 
-// Boot
+function applyToken(token, fxOverride){
+  const r = r2State();
+  if(r.usedTokens[token]){ toast('Already used on this device.'); return; }
+  const fx = TOKEN_EFFECTS[token] || fxOverride;
+  if(!fx){ toast('Unknown or invalid token.'); return; }
+  r.usedTokens[token]=true; setR2(r);
+  switch(fx){
+    case 'gain1': adjustCoins(+1,'blessing'); break;
+    case 'gain2': adjustCoins(+2,'golden boon'); break;
+    case 'lose1': adjustCoins(-1,'curse'); break;
+    case 'lose2': adjustCoins(-2,'tangled hex'); break;
+    case 'wipe':  const lost = r.coins||0; r.coins=0; setR2(r); el.total.textContent=r.coins; toast(`Doom Mark! You lost ${lost} coin(s).`); updateProgress(); break;
+    default: toast('Token had no effect.');
+  }
+}
+
+function startTradeSend(){
+  const r = r2State();
+  if((r.coins||0) < 1) return toast('You need at least 1 coin to send.');
+  const code = (''+Math.floor(1000+Math.random()*9000));
+  el.tradeArea.innerHTML = `<p><b>Share this code:</b> <span style="color:#9ef0c9">${code}</span></p>
+    <button id="confirmSend" class="pill">Confirm Transfer (−1)</button>`;
+  document.getElementById('confirmSend').onclick=()=>{ adjustCoins(-1,'trade sent'); el.tradeArea.innerHTML='Sent. Tell them to claim it.'; };
+  // This is honor-system; receiver separately enters code to gain +1.
+}
+
+function startTradeReceive(){
+  const code = prompt('Enter the 4-digit code they showed you:'); 
+  if(!code || !/^\d{4}$/.test(code)) return;
+  adjustCoins(+1, 'trade received');
+  el.tradeArea.textContent = 'Received +1.';
+}
+
+function scheduleWhisper(){
+  const ms = 1000 * (60*10 + Math.floor(Math.random()*300)); // 10–15 minutes
+  setTimeout(()=>{ showWhisper(); scheduleWhisper(); }, ms);
+}
+function showWhisper(){
+  const choices = [
+    {label:'Accept Boon (+1)', delta:+1, flair:'“Take what the wind gives.”'},
+    {label:'Accept Hex (−1)', delta:-1, flair:'“Balance must be paid.”'},
+    {label:'Decline', delta:0, flair:'The whisper fades.'}
+  ];
+  el.whisperArea.innerHTML = `<p><em>Willow’s Whisper:</em> “Favor or forfeit?”</p>` + 
+    choices.map((c,i)=>`<button class="pill" data-whisper="${i}">${c.label}</button>`).join(' ') +
+    `<p class="small" style="opacity:.8">Choose once; it vanishes.</p>`;
+  el.whisperArea.querySelectorAll('[data-whisper]').forEach(b=>{
+    b.onclick=()=>{ const i=+b.getAttribute('data-whisper'); const c=choices[i]; if(c.delta) adjustCoins(c.delta,'whisper'); el.whisperArea.innerHTML = `<p>${c.flair}</p>`; };
+  });
+}
+
+function toast(msg){ const t=document.createElement('div'); t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#1a1530;color:#cfe9e0;border:1px solid #463a73;padding:8px 12px;border-radius:10px;z-index:99;box-shadow:0 8px 20px #0009';
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 1800);
+}
+
+/* ====== Boot ====== */
 (function boot(){
   ensureId();
   const s=getState();
-  if(s.name) document.getElementById('me').textContent='@'+s.name;
-  if(s.points!=null) document.getElementById('points').textContent=s.points;
-  if([1,2,3,4,5].every(i=>s['s'+i])) document.getElementById('lvl2').classList.remove('hidden');
+  // Restore header state
+  for(let i=1;i<=5;i++){ if(s['s'+i]) coins[i-1].classList.add('got'); }
   initLvl1();
+  if([1,2,3,4,5].every(i=>s['s'+i])){ document.getElementById('lvl2').classList.remove('hidden'); }
+  // Initialize Round 2 state and process URL token (if any)
+  initRound2();
 })();
 </script>
 </body>
