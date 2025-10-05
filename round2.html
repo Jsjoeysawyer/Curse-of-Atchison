@@ -42,9 +42,9 @@
   #scare .face, #scareBad .face { width:min(90vw,700px); height:auto; opacity:0; filter:drop-shadow(0 0 20px #000);
     background-repeat:no-repeat; background-position:center; background-size:contain; }
   #scare .face{ background-image:url('data:image/svg+xml;utf8,\
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700"><rect width="700" height="700" fill="black"/><g fill="white"><ellipse cx="240" cy="260" rx="70" ry="95"/><ellipse cx="460" cy="260" rx="70" ry="95"/><path d="M210 480 Q350 620 490 480 Q350 520 210 480 Z" /></g><g fill="black"><ellipse cx="240" cy="270" rx="28" ry="38"/><ellipse cx="460" cy="270" rx="28" ry="38"/></g></svg>'); }
+<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 700 700\"><rect width=\"700\" height=\"700\" fill=\"black\"/><g fill=\"white\"><ellipse cx=\"240\" cy=\"260\" rx=\"70\" ry=\"95\"/><ellipse cx=\"460\" cy=\"260\" rx=\"70\" ry=\"95\"/><path d=\"M210 480 Q350 620 490 480 Q350 520 210 480 Z\" /></g><g fill=\"black\"><ellipse cx=\"240\" cy=\"270\" rx=\"28\" ry=\"38\"/><ellipse cx=\"460\" cy=\"270\" rx=\"28\" ry=\"38\"/></g></svg>'); }
   #scareBad .face{ background-image:url('data:image/svg+xml;utf8,\
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700"><rect width="700" height="700" fill="black"/><g fill="red"><ellipse cx="240" cy="260" rx="80" ry="110"/><ellipse cx="460" cy="260" rx="80" ry="110"/><path d="M140 520 Q350 420 560 520 Q350 580 140 520 Z" /></g><g fill="black"><ellipse cx="240" cy="270" rx="20" ry="30"/><ellipse cx="460" cy="270" rx="20" ry="30"/></g></svg>'); }
+<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 700 700\"><rect width=\"700\" height=\"700\" fill=\"black\"/><g fill=\"red\"><ellipse cx=\"240\" cy=\"260\" rx=\"80\" ry=\"110\"/><ellipse cx=\"460\" cy=\"260\" rx=\"80\" ry=\"110\"/><path d=\"M140 520 Q350 420 560 520 Q350 580 140 520 Z\" /></g><g fill=\"black\"><ellipse cx=\"240\" cy=\"270\" rx=\"20\" ry=\"30\"/><ellipse cx=\"460\" cy=\"270\" rx=\"20\" ry=\"30\"/></g></svg>'); }
   .scare-in .flash{animation: flash 0.25s ease forwards} .scare-in .face{animation: popIn 0.28s ease forwards 0.05s}
   @keyframes popIn { from { transform:scale(0.65); opacity:0; } to { transform:scale(1); opacity:1; } }
   @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0.2} }
@@ -79,7 +79,7 @@
       <input id="codeBox" type="text" maxlength="20" placeholder="Type the 6-char code (e.g., AD8CU8)">
       <button id="submitCode" class="btn">Claim</button>
     </div>
-    <p class="small" style="margin-top:6px">Codes are printed on the hidden “CLUE” cards (1–10). Not case-sensitive.</p>
+    <p class="small" style="margin-top:6px">Codes are printed on the hidden “Records of Atchison Gulch” half-sheets. Not case-sensitive.</p>
     <div class="small" id="foundStat" style="margin-top:6px">Found: 0 / 10 · Coins: 0 · Trade used: No</div>
   </section>
 
@@ -129,12 +129,22 @@ const FATE={ gain:0.55, lose:0.30, doom:0.15 };
 const COIN_CHANGE={ gain:+2, lose:-1 };
 const AUTO_WIN_POINTS = 10;
 
-/* EXACT tokens on your printed cards (CLUE 1..10) */
+/* EXACT tokens for your printed half-sheets (10 total) */
 const TOKENS = [
   'AD8CU8','75SHA7','W4ZQ6X','T3BT5T','BZV7V4','YJN2J7','SYBP7Z','CWD4WC','9TJVVK','ARTNPS'
 ];
-const MSGS_WILLOW=["“You blamed me for the dark—yet you dug the tunnel.”","“Set down your fear and the dust will settle.”","“Truth is a lantern: it burns, but it shows the way.”","“Trade kindly; Atchison remembers debts.”"];
-const MSGS_DEAD=["The canary fell silent… and so did we.","We drown in dust, not water.","Our bones line the riverbed of your choices.","We whisper: let blame go, or be buried with it."];
+const MSGS_WILLOW=[
+  "“You blamed me for the dark—yet you dug the tunnel.”",
+  "“Set down your fear and the dust will settle.”",
+  "“Truth is a lantern: it burns, but it shows the way.”",
+  "“Trade kindly; Atchison remembers debts.”"
+];
+const MSGS_DEAD=[
+  "The canary fell silent… and so did we.",
+  "We drown in dust, not water.",
+  "Our bones line the riverbed of your choices.",
+  "We whisper: let blame go, or be buried with it."
+];
 
 /* ===== UI refs ===== */
 const startBtn=document.getElementById('startBtn');
@@ -168,7 +178,7 @@ function playSweep({good=true,duration=1.0}={}){ if(!audioCtx) return; const ctx
 (function boot(){
   // close any dialog with [data-close]
   document.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); }});
-  // prime audio
+  // prime audio once
   ['click','touchstart'].forEach(ev=>document.addEventListener(ev, primeAudio, {once:true}));
 
   const s=S();
@@ -247,7 +257,7 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function normalizeToken(t){ return String(t||'').trim().toUpperCase(); }
 function submitEnteredCode(){
   const t = normalizeToken(codeBox.value);
-  if(!t) return alert('Enter a code from a CLUE card.');
+  if(!t) return alert('Enter a code from a CLUE sheet.');
   if(!TOKENS.includes(t)) return alert('That code is not recognized. Double-check the letters and numbers.');
 
   const s=S();
@@ -301,14 +311,17 @@ function checkOutcome(){
   winFlow();
 }
 
-/* ===== Jump scares ===== */
-function jumpScare(good){ return new Promise(res=>{
-  primeAudio();
-  const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
-  el.style.display='flex'; el.classList.add('scare-in');
-  playSweep({good, duration: good?0.9:1.4});
-  setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
-});}
+/* ===== Jump scares (overlay + WebAudio sound) ===== */
+function jumpScare(good){
+  return new Promise(res=>{
+    primeAudio();
+    const el = good ? document.getElementById('scare') : document.getElementById('scareBad');
+    el.style.display='flex'; el.classList.add('scare-in');
+    // sound sweep (mobile-safe)
+    playSweep({good, duration: good?0.9:1.4});
+    setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
+  });
+}
 function winRitual(){ alert('✨ The curse lifts! Show this to the host for your reward.'); }
 </script>
 </body>
