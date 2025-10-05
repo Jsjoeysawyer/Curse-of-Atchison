@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Curse of Atchison · Round 2</title>
+<title>Curse of Atchison · Round 2 (Code Hunt)</title>
 <meta name="theme-color" content="#111017">
 <style>
   :root{ --bg:#0c0a12; --card:#141022; --ink:#f0e6ff; --muted:#c9c0e6; --ok:#95f5c9; --no:#ff6b6b; --accent:#a487ff; }
@@ -18,21 +18,23 @@
   .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
   .small{font-size:12px; color:#bfc6e6}
   a.btn { text-decoration:none }
-  input[type="text"]{ padding:8px; border-radius:10px; border:1px solid #3a315d; background:#0f0c18; color:#f0e6ff }
+  input[type="text"]{ padding:10px; border-radius:10px; border:1px solid #3a315d; background:#0f0c18; color:#f0e6ff; min-width:220px }
   blockquote{margin:8px 0; padding-left:12px; border-left:3px solid #3d3264; color:#d7cff3}
 
+  /* Clue grid */
+  .clues{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px}
+  .clue{background:#0f0c18; border:1px dashed #3a315d; border-radius:12px; padding:10px; text-align:center; color:#cfd6ff}
+  .clue .n{font-weight:800; font-size:22px; color:#a0f0cc}
+  .clue.s{border-style:solid; border-color:#3c6; color:#aaf0c9}
+  .clue.d{border-style:solid; border-color:#f66; color:#ffb0b0}
+
+  /* Modals */
   dialog{ border:none; border-radius:16px; background:#140f24; color:var(--ink); max-width:720px; width:calc(100% - 28px);
           padding:0; box-shadow: 0 40px 120px #000f, inset 0 0 0 1px #2d2450; }
   dialog::backdrop{background:#0009}
   .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #2d2450; background:#1a1530}
   .modal-body{padding:16px; color:var(--muted)}
   .x{background:transparent; border:1px solid #463a73; border-radius:10px; padding:6px 10px; color:#ddd; cursor:pointer}
-
-  /* html5-qrcode region */
-  #qrRegion { width:100%; max-width:640px; margin:0 auto; }
-  #qrRegion video { border-radius:12px; }
-  #qrRegion .reader { background:#000; border-radius:12px; }
-  #qrRegion .error { color:#ffb4b4; font-size:12px; margin-top:6px }
 
   /* Jump scares */
   #scare, #scareBad { position:fixed; inset:0; background:#000; display:none; z-index:9999; align-items:center; justify-content:center; }
@@ -51,8 +53,8 @@
 <body>
 <header>
   <div class="wrap">
-    <h1>Round 2 · Solo Hunt</h1>
-    <div class="small">Find every posted QR within <b>30 minutes</b>. Each scan reveals a message and fate: <b>+2</b>, <b>−1</b>, or <b>DOOM</b>. You may trade <b>once</b>. <b>Auto-win at 10 coins.</b></div>
+    <h1>Round 2 · Code Hunt</h1>
+    <div class="small">Find <b>10 hidden codes</b> around the party. Enter each code below. Every claim reveals a message and fate: <b>+2</b>, <b>−1</b>, or <b>DOOM</b>. One trade allowed. <b>Auto-win at 10 coins.</b></div>
   </div>
 </header>
 
@@ -70,15 +72,21 @@
     </div>
   </section>
 
-  <!-- Scan / enter -->
+  <!-- Enter code -->
   <section class="card">
-    <h3>Scan or Enter Token</h3>
+    <h3>Enter a Code</h3>
     <div class="row">
-      <button id="scanBtn" class="btn">Scan with Camera</button>
-      <button id="enterBtn" class="btn">Enter Token</button>
+      <input id="codeBox" type="text" maxlength="20" placeholder="Type the 6-char code (e.g., AD8CU8)">
+      <button id="submitCode" class="btn">Claim</button>
     </div>
-    <p class="small" style="margin-top:6px">If scanning fails on your device, use <b>Enter Token</b>. Tip: Allow camera permissions when prompted.</p>
-    <div class="small" id="foundStat" style="margin-top:6px">Found: 0 / 12 · Coins: 0 · Trade used: No</div>
+    <p class="small" style="margin-top:6px">Codes are printed on the hidden “CLUE” cards (1–10). Not case-sensitive.</p>
+    <div class="small" id="foundStat" style="margin-top:6px">Found: 0 / 10 · Coins: 0 · Trade used: No</div>
+  </section>
+
+  <!-- Clue tracker -->
+  <section class="card">
+    <h3>Clues Found</h3>
+    <div class="clues" id="clueGrid"></div>
   </section>
 
   <!-- Trade -->
@@ -97,22 +105,6 @@
   </section>
 </main>
 
-<!-- Scanner Modal (html5-qrcode) -->
-<dialog id="scanDlg">
-  <div class="modal-head">
-    <strong>Scan QR</strong>
-    <button class="x" data-close="scanDlg" aria-label="Close">Close</button>
-  </div>
-  <div class="modal-body">
-    <div class="small" id="scanStatus" style="margin-bottom:8px">Grant camera permission when prompted.</div>
-    <div id="qrRegion"></div>
-    <div id="scanError" class="small" style="color:#ff9a9a;margin-top:6px;"></div>
-    <div class="row" style="margin-top:10px">
-      <button id="scanStop" class="btn">Stop</button>
-    </div>
-  </div>
-</dialog>
-
 <!-- Message Modal -->
 <dialog id="msg">
   <div class="modal-head">
@@ -126,9 +118,6 @@
 <div id="scare" aria-hidden="true"><div class="flash"></div><div class="face" role="img" aria-label="Wicked Willow appears"></div></div>
 <div id="scareBad" aria-hidden="true"><div class="flash"></div><div class="face" role="img" aria-label="The curse follows you home"></div></div>
 
-<!-- html5-qrcode (best mobile support) -->
-<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
-
 <script>
 /* ===== Shared state ===== */
 function S(){ try{return JSON.parse(localStorage.getItem('willow_qr')||'{}')}catch{return{}} }
@@ -139,11 +128,11 @@ const TIME_LIMIT_MIN=30;
 const FATE={ gain:0.55, lose:0.30, doom:0.15 };
 const COIN_CHANGE={ gain:+2, lose:-1 };
 const AUTO_WIN_POINTS = 10;
-const QR_TOKENS={
-  'HBTRQJ':'Saloon','GF5CBF':'Hotel','PQBN4Q':'Jail','6TAL5X':'Blacksmith',
-  'TKPXGF':'Church','2GYYSC':'Water Tower','7H2FUZ':'Train Tracks','NECQUF':'General Store',
-  'QG2T7Z':'Undertaker','LZYPTE':'Schoolhouse','LRL72T':'Barn','QWDQCW':'Windmill'
-};
+
+/* EXACT tokens on your printed cards (CLUE 1..10) */
+const TOKENS = [
+  'AD8CU8','75SHA7','W4ZQ6X','T3BT5T','BZV7V4','YJN2J7','SYBP7Z','CWD4WC','9TJVVK','ARTNPS'
+];
 const MSGS_WILLOW=["“You blamed me for the dark—yet you dug the tunnel.”","“Set down your fear and the dust will settle.”","“Truth is a lantern: it burns, but it shows the way.”","“Trade kindly; Atchison remembers debts.”"];
 const MSGS_DEAD=["The canary fell silent… and so did we.","We drown in dust, not water.","Our bones line the riverbed of your choices.","We whisper: let blame go, or be buried with it."];
 
@@ -154,8 +143,8 @@ const nameInp=document.getElementById('name');
 const saveName=document.getElementById('saveName');
 const resetRun=document.getElementById('resetRun');
 
-const scanBtn=document.getElementById('scanBtn');
-const enterBtn=document.getElementById('enterBtn');
+const codeBox=document.getElementById('codeBox');
+const submitCode=document.getElementById('submitCode');
 const foundStat=document.getElementById('foundStat');
 const tradeBtn=document.getElementById('tradeBtn');
 
@@ -166,40 +155,20 @@ const msgDlg=document.getElementById('msg');
 const msgTitle=document.getElementById('msgTitle');
 const msgBody=document.getElementById('msgBody');
 
-const scanDlg=document.getElementById('scanDlg');
-const scanStatus=document.getElementById('scanStatus');
-const scanErr=document.getElementById('scanError');
-const scanStop=document.getElementById('scanStop');
+const clueGrid=document.getElementById('clueGrid');
 
 let ticker=null;
 
 /* ===== WebAudio (mobile-safe) ===== */
 let audioCtx=null;
-function primeAudio(){
-  try{
-    if(!audioCtx){ const C=window.AudioContext||window.webkitAudioContext; audioCtx=new C(); }
-    if(audioCtx.state==='suspended') audioCtx.resume();
-  }catch(e){}
-}
-function playSweep({good=true,duration=1.0}={}){
-  if(!audioCtx) return;
-  const ctx=audioCtx;
-  const master=ctx.createGain(); master.gain.value=0.0001; master.connect(ctx.destination);
-  const osc=ctx.createOscillator(); osc.type='sawtooth';
-  const start=ctx.currentTime+0.01, end=start+duration;
-  const f1=good?520:140, f2=good?60:20;
-  osc.frequency.setValueAtTime(f1,start);
-  osc.frequency.exponentialRampToValueAtTime(f2,start+(good?0.45:0.9));
-  master.gain.setValueAtTime(0.0001,start); master.gain.exponentialRampToValueAtTime(0.9,start+0.06); master.gain.exponentialRampToValueAtTime(0.0001,end);
-  osc.connect(master); osc.start(start); osc.stop(end);
-}
+function primeAudio(){ try{ if(!audioCtx){ const C=window.AudioContext||window.webkitAudioContext; audioCtx=new C(); } if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
+function playSweep({good=true,duration=1.0}={}){ if(!audioCtx) return; const ctx=audioCtx; const g=ctx.createGain(); g.gain.value=0.0001; g.connect(ctx.destination); const o=ctx.createOscillator(); o.type='sawtooth'; const t0=ctx.currentTime+0.01,t1=t0+duration; const f1=good?520:140, f2=good?60:20; o.frequency.setValueAtTime(f1,t0); o.frequency.exponentialRampToValueAtTime(f2,t0+(good?0.45:0.9)); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.9,t0+0.06); g.gain.exponentialRampToValueAtTime(0.0001,t1); o.connect(g); o.start(t0); o.stop(t1); }
 
 /* ===== Boot ===== */
 (function boot(){
-  // Close any dialog with [data-close]
-  document.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); stopScanner(); }});
-
-  // Prime audio on first user gesture
+  // close any dialog with [data-close]
+  document.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-close]'); if(btn){ const id=btn.getAttribute('data-close'); const dlg=document.getElementById(id); dlg?.close(); }});
+  // prime audio
   ['click','touchstart'].forEach(ev=>document.addEventListener(ev, primeAudio, {once:true}));
 
   const s=S();
@@ -207,18 +176,17 @@ function playSweep({good=true,duration=1.0}={}){
 
   startBtn.onclick=()=>{ primeAudio(); startRun(); };
   saveName.onclick=()=>{ const s=S(); const n=(nameInp.value||'').trim(); if(!n) return alert('Pick a codename first.'); s.name=n; W(s); alert('Saved.'); };
-  resetRun.onclick=()=>{ if(!confirm('Reset your current Round-2 run?')) return; const s=S(); delete s.r2; W(s); timerEl.textContent='Not started'; ritualCard.style.display='none'; updateFoundUI(); };
+  resetRun.onclick=()=>{ if(!confirm('Reset your current Round-2 run?')) return; const s=S(); delete s.r2; W(s); timerEl.textContent='Not started'; ritualCard.style.display='none'; paintClues(); updateFoundUI(); };
 
-  scanBtn.onclick=()=>{ primeAudio(); openScanner(); };
-  enterBtn.onclick=()=>{ primeAudio(); manualToken(); };
+  submitCode.onclick=()=>{ primeAudio(); submitEnteredCode(); };
+  codeBox.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); submitEnteredCode(); } });
+
   tradeBtn.onclick=()=>{ primeAudio(); useTrade(); };
   liftBtn.onclick=()=>{ primeAudio(); winRitual(); };
 
-  // if a token is passed in the URL (?token=XYZ), claim it
-  const p=new URLSearchParams(location.search); const t=p.get('token')||p.get('claimToken');
-  if(t) setTimeout(()=>resolveToken(t), 250);
-
-  if(s.r2){ updateFoundUI(); if(s.r2.startedAt && !s.r2.over) startTicker(); }
+  // restore state
+  if(s.r2){ paintClues(); updateFoundUI(); if(s.r2.startedAt && !s.r2.over) startTicker(); }
+  else paintClues();
 })();
 
 /* ===== Timer & state ===== */
@@ -227,7 +195,7 @@ function startRun(){
   if(s.r2 && s.r2.startedAt && !s.r2.over) return alert('Your run is already in progress!');
   const now=Date.now();
   s.r2={startedAt:now, endsAt:now+TIME_LIMIT_MIN*60000, points:0, found:{}, tradeUsed:false, doom:false, over:false, win:false};
-  W(s); updateFoundUI(); startTicker(); alert('The lantern burns. Your hunt begins!');
+  W(s); paintClues(); updateFoundUI(); startTicker(); alert('The lantern burns. Your hunt begins!');
 }
 function startTicker(){
   if(ticker) clearInterval(ticker);
@@ -239,12 +207,28 @@ function startTicker(){
     timerEl.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   },1000);
 }
+
+/* ===== UI painters ===== */
+function paintClues(){
+  const s=S();
+  const found = s?.r2?.found || {};
+  clueGrid.innerHTML='';
+  TOKENS.forEach((tok, i)=>{
+    const div=document.createElement('div');
+    div.className='clue';
+    const status=found[tok];
+    if(status==='gain' || status==='lose') div.classList.add('s');
+    if(status==='doom') div.classList.add('d');
+    div.innerHTML=`<div class="n">CLUE ${i+1}</div><div class="small">${ status ? (status==='doom'?'☠️ DOOMED':'Claimed') : 'Unclaimed' }</div>`;
+    clueGrid.appendChild(div);
+  });
+}
 function updateFoundUI(){
   const s=S();
-  const found = Object.keys(s?.r2?.found||{}).length;
+  const foundN = Object.keys(s?.r2?.found||{}).length;
   const coins = s?.r2?.points||0;
   const tradeUsed = s?.r2?.tradeUsed ? 'Yes' : 'No';
-  foundStat.textContent = `Found: ${found} / ${Object.keys(QR_TOKENS).length} · Coins: ${coins} · Trade used: ${tradeUsed}`;
+  foundStat.textContent = `Found: ${foundN} / ${TOKENS.length} · Coins: ${coins} · Trade used: ${tradeUsed}`;
 }
 
 /* ===== Fate + messages ===== */
@@ -259,30 +243,27 @@ function showMsg(title, html){
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* ===== Token handling ===== */
-function parseTokenFromText(raw){
-  let token = '';
-  try{ const u=new URL(raw); token=u.searchParams.get('token')||u.searchParams.get('claimToken')||''; }
-  catch{ token = raw; }
-  return String(token||'').trim().toUpperCase();
-}
-function resolveToken(raw){
-  const t=parseTokenFromText(raw);
-  if(!t){ alert('That code didn’t include a token.'); return; }
-  const label = QR_TOKENS[t]; if(!label) return alert('That token is not recognized.');
+/* ===== Token entry ===== */
+function normalizeToken(t){ return String(t||'').trim().toUpperCase(); }
+function submitEnteredCode(){
+  const t = normalizeToken(codeBox.value);
+  if(!t) return alert('Enter a code from a CLUE card.');
+  if(!TOKENS.includes(t)) return alert('That code is not recognized. Double-check the letters and numbers.');
+
   const s=S();
   if(!s.r2 || !s.r2.startedAt || s.r2.over) return alert('Start your 30-minute run first.');
   if(s.r2.doom) return alert('Your fate is sealed. The curse follows you.');
-  if(s.r2.found && s.r2.found[t]) return alert('You already claimed this sigil.');
+  if(s.r2.found && s.r2.found[t]) return alert('You already claimed this code.');
 
   const fate = rollFate();
   s.r2.found[t]=fate;
 
   if(fate==='gain'){ s.r2.points=(s.r2.points||0)+COIN_CHANGE.gain; showMsg('Willow Speaks', pick(MSGS_WILLOW)+`<br><br><b>Fate:</b> +${COIN_CHANGE.gain} coins`); }
   if(fate==='lose'){ s.r2.points=Math.max(0,(s.r2.points||0)+COIN_CHANGE.lose); showMsg('A Voice from the Shaft', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> ${COIN_CHANGE.lose} coin`); }
-  if(fate==='doom'){ s.r2.doom=true; s.r2.over=true; W(s); updateFoundUI(); return loseFlow('A Cold Hand', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> <span style="color:#ff6b6b">DOOM</span>`); }
+  if(fate==='doom'){ s.r2.doom=true; s.r2.over=true; W(s); paintClues(); updateFoundUI(); return loseFlow('A Cold Hand', pick(MSGS_DEAD)+`<br><br><b>Fate:</b> <span style="color:#ff6b6b">DOOM</span>`); }
 
-  W(s); updateFoundUI();
+  W(s); paintClues(); updateFoundUI(); if(navigator.vibrate) navigator.vibrate(30);
+  codeBox.value='';
 
   // Auto-win at 10+
   if(!s.r2.over && s.r2.points >= AUTO_WIN_POINTS){
@@ -291,17 +272,10 @@ function resolveToken(raw){
     return winFlow();
   }
 
-  // Win if all checkpoints found
-  if(Object.keys(s.r2.found).length === Object.keys(QR_TOKENS).length){
+  // Win if all codes found
+  if(Object.keys(s.r2.found).length === TOKENS.length){
     s.r2.over=true; s.r2.win=true; W(s); winFlow();
   }
-
-  // Haptic feedback if available
-  if(navigator.vibrate) navigator.vibrate(30);
-}
-function manualToken(){
-  const t=prompt('Enter the token printed on the QR sticker:');
-  if(t) resolveToken(t);
 }
 
 /* ===== Trade (once) ===== */
@@ -323,7 +297,7 @@ function checkOutcome(){
   const s=S();
   if(s.r2.doom) return loseFlow('Your Footsteps Echo', 'The lantern goes dark. The curse finds your doorstep.');
   if((s.r2.points||0) >= AUTO_WIN_POINTS) return winFlow();
-  if(Object.keys(s?.r2?.found||{}).length !== Object.keys(QR_TOKENS).length) return loseFlow('Too Late','Midnight passes; the gulch exhales. The curse follows you home.');
+  if(Object.keys(s?.r2?.found||{}).length !== TOKENS.length) return loseFlow('Too Late','Midnight passes; the gulch exhales. The curse follows you home.');
   winFlow();
 }
 
@@ -336,42 +310,6 @@ function jumpScare(good){ return new Promise(res=>{
   setTimeout(()=>{ el.style.display='none'; el.classList.remove('scare-in'); res(); }, good?1200:1600);
 });}
 function winRitual(){ alert('✨ The curse lifts! Show this to the host for your reward.'); }
-
-/* ===== Scanner (html5-qrcode) ===== */
-let qrController = null;
-function openScanner(){
-  if(scanDlg && scanDlg.showModal) scanDlg.showModal();
-  scanStatus.textContent='If asked, allow camera access.';
-  scanErr.textContent='';
-  startScanner();
-}
-async function startScanner(){
-  stopScanner(); // safety
-  try{
-    const config = { fps: 12, qrbox: { width: 260, height: 260 }, aspectRatio: 1.333, rememberLastUsedCamera: true };
-    qrController = new Html5Qrcode("qrRegion");
-    await qrController.start(
-      { facingMode: "environment" },
-      config,
-      (decodedText, decodedResult) => {
-        // stop then resolve
-        stopScanner().then(()=> resolveToken(decodedText));
-      },
-      (err) => { /* scan errors are noisy; keep quiet, or show minimal */ }
-    );
-  }catch(e){
-    console.error(e);
-    scanErr.textContent = 'Camera unavailable or permission denied. Use Enter Token.';
-  }
-}
-function stopScanner(){
-  if(!qrController) return Promise.resolve();
-  const c = qrController;
-  qrController = null;
-  return c.stop().then(()=> c.clear()).catch(()=>{});
-}
-scanStop.addEventListener('click', ()=>{ stopScanner(); scanDlg.close(); });
-
 </script>
 </body>
 </html>
